@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
-module Numeric.NumType.TFTests where
+module Numeric.NumType.DKTests where
 
-import Numeric.NumType.TF
+import Numeric.NumType.DK
 import Prelude hiding ((*), (/), (+), (-), negate)
 import qualified Prelude as P ((*), (/), (+), (-), negate)
 import Test.HUnit
@@ -11,8 +11,8 @@ import Test.HUnit
 -- Compares a type level unary function with a value level unary function
 -- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
 -- function is solid.
-unaryTest :: (NumType n, NumType n', Num a)
-          => (n -> n') -> (a -> a) -> n -> Test
+unaryTest :: (ToNum n, ToNum n', Num a, Eq a, Show a)
+          => (INTRep n -> INTRep n') -> (a -> a) -> INTRep n -> Test
 unaryTest f f' x = TestCase $ assertEqual
     "Unary function Integral equivalence"
     (f' (toNum x)) (toNum (f x))
@@ -20,8 +20,8 @@ unaryTest f f' x = TestCase $ assertEqual
 -- Compares a type level binary function with a value level binary function
 -- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
 -- function is solid.
-binaryTest :: (NumType n, NumType n', NumType n'', Num a)
-           => (n -> n' -> n'') -> (a -> a -> a) -> n -> n' -> Test
+binaryTest :: (ToNum n, ToNum n', ToNum n'', Num a, Eq a, Show a)
+           => (INTRep n -> INTRep n' -> INTRep n'') -> (a -> a -> a) -> INTRep n -> INTRep n' -> Test
 binaryTest f f' x y = TestCase $ assertEqual
     "Binary function Integral equivalence"
     (f' (toNum x) (toNum y)) (toNum (f x y))
@@ -44,8 +44,8 @@ testIncrDecr = TestLabel "Increment and decrement tests" $ TestList
     , t pos1
     , t pos1
     ] where
-        t x = TestList [ unaryTest incr (P.+ 1) x
-                       , unaryTest decr (P.- 1) x
+        t x = TestList [ unaryTest Incr (P.+ 1) x
+                       , unaryTest Decr (P.- 1) x
                        ]
 
 -- Test negation.

@@ -1,4 +1,4 @@
-Name:                numtype-tf
+Name:                numtype-dk
 Version:             0.1
 License:             BSD3
 License-File:        LICENSE
@@ -8,7 +8,7 @@ Maintainer:          bjorn.buckwalter@gmail.com
 Stability:           experimental
 Homepage:            http://dimensional.googlecode.com/
 Synopsis:            Type-level (low cardinality) integers, implemented
-                     using type families.
+                     using data kinds and type families.
 Description:
 
     This package provides unary type level representations of the
@@ -24,11 +24,11 @@ Description:
     the NumTypes are implemented using type families rather than
     functional dependencies.
 
-    Requires GHC 7.0 or later.
+    Requires GHC 7.4 or later.
 
 Category:            Math
 Build-Type:          Simple
 Build-Depends:       base < 5
-Exposed-Modules:     Numeric.NumType.TF
+Exposed-Modules:     Numeric.NumType.DK
 Extra-source-files:  README,
-                     Numeric/NumType/TFTests.hs
+                     Numeric/NumType/DKTests.hs
