@@ -7,8 +7,8 @@ Author:              Bjorn Buckwalter
 Maintainer:          bjorn.buckwalter@gmail.com
 Stability:           experimental
 Homepage:            http://dimensional.googlecode.com/
-Synopsis:            Type-level (low cardinality) integers, implemented
-                     using data kinds and type families.
+Synopsis:            Type-level integers, implemented using TypeNats, Data
+                     Kinds, and Closed Type Families.
 Description:
 
     This package provides unary type level representations of the
