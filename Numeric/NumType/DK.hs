@@ -5,7 +5,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Numeric.NumType.TF78 where
+module Numeric.NumType.DK where
 
 import Data.Proxy
 import Data.Typeable
@@ -167,14 +167,3 @@ toNum = fromInteger . toInteger
 
 -- Show instance.
 instance ToInteger (NT i) => Show (NT i) where show = (++"#") . show . toInteger
-
-
-main = do
-    putStrLn "Hola"
-    print $ pos3 + neg2
-    print $ toInteger zero
-    print $ toInteger neg1
-    print $ toInteger pos1
-    print $ pos3 * neg2
-    print $ pos3 / neg1
-    print $ pos3 * neg2 / neg3

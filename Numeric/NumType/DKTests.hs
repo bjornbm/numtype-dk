@@ -1,34 +1,38 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
 module Numeric.NumType.DKTests where
 
 import Numeric.NumType.DK
-import Prelude hiding ((*), (/), (+), (-), negate)
+import Prelude hiding ((*), (/), (+), (-), negate, toInteger)
 import qualified Prelude as P ((*), (/), (+), (-), negate)
 import Test.HUnit
 
 
--- Compares a type level unary function with a value level unary function
--- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
--- function is solid.
-unaryTest :: (ToNum n, ToNum n', Num a, Eq a, Show a)
-          => (INTRep n -> INTRep n') -> (a -> a) -> INTRep n -> Test
+-- | Compares a type level unary function with a value level unary function
+  -- by converting 'NumType' to a @Num@. This assumes that the 'toNum'
+  -- function is solid.
+unaryTest :: (ToInteger n, ToInteger n', Num a, Eq a, Show a)
+          => (n -> n') -> (a -> a) -> n -> Test
 unaryTest f f' x = TestCase $ assertEqual
     "Unary function Integral equivalence"
     (f' (toNum x)) (toNum (f x))
 
--- Compares a type level binary function with a value level binary function
--- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
--- function is solid.
-binaryTest :: (ToNum n, ToNum n', ToNum n'', Num a, Eq a, Show a)
-           => (INTRep n -> INTRep n' -> INTRep n'') -> (a -> a -> a) -> INTRep n -> INTRep n' -> Test
+-- | 'unaryTest' with @Num a@ fixed to @Integer@. This is needed by
+  -- 'testIncrDecr'.
+unaryTest' :: (ToInteger n, ToInteger n')
+          => (n -> n') -> (Integer -> Integer) -> n -> Test
+unaryTest' = unaryTest
+
+-- | Compares a type level binary function with a value level binary function
+  -- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
+  -- function is solid.
+binaryTest :: (ToInteger n, ToInteger n', ToInteger n'', Num a, Eq a, Show a)
+           => (n -> n' -> n'') -> (a -> a -> a) -> n -> n' -> Test
 binaryTest f f' x y = TestCase $ assertEqual
     "Binary function Integral equivalence"
     (f' (toNum x) (toNum y)) (toNum (f x y))
 
--- Test that conversion to 'Integral' works as expected. This is sort of a
--- prerequisite for the other tests.
-testAsIntegral = TestLabel "Integral equivalence tests" $ TestList
+-- | Test that conversion to 'Num a' works as expected. This is sort of a
+  -- prerequisite for the other tests.
+testAsIntegral = TestLabel "Num equivalence tests" $ TestList
     [ TestCase $ -2 @=? toNum neg2
     , TestCase $ -1 @=? toNum neg1
     , TestCase $  0 @=? toNum zero
@@ -36,7 +40,8 @@ testAsIntegral = TestLabel "Integral equivalence tests" $ TestList
     , TestCase $  2 @=? toNum pos2
     ] -- By induction all other NumTypes should be good if these are.
 
--- Test increment and decrement for a bunch of 'NumTypes'.
+-- | Test incrementing and decrementing. This test was more relevant for
+  -- numtype-dk-0.1.
 testIncrDecr = TestLabel "Increment and decrement tests" $ TestList
     [ t neg2
     , t neg1
@@ -44,11 +49,13 @@ testIncrDecr = TestLabel "Increment and decrement tests" $ TestList
     , t pos1
     , t pos1
     ] where
-        t x = TestList [ unaryTest Incr (P.+ 1) x
-                       , unaryTest Decr (P.- 1) x
+        t x = TestList [ unaryTest' (+ pos1) (P.+ 1) x
+                       , unaryTest' (+ neg1) (P.- 1) x
+                       , unaryTest' (\x -> x - neg1) (P.+ 1) x
+                       , unaryTest' (\x -> x - pos1) (P.- 1) x
                        ]
 
--- Test negation.
+-- | Test negation.
 testNegate = TestLabel "Negation tests" $ TestList
     [ unaryTest negate P.negate neg2
     , unaryTest negate P.negate neg1
@@ -57,7 +64,7 @@ testNegate = TestLabel "Negation tests" $ TestList
     , unaryTest negate P.negate pos1
     ]
 
--- Test addition.
+-- | Test addition.
 testAddition = TestLabel "Addition tests" $ TestList
     [ binaryTest (+) (P.+) pos2 pos3
     , binaryTest (+) (P.+) neg2 pos3
@@ -65,7 +72,7 @@ testAddition = TestLabel "Addition tests" $ TestList
     , binaryTest (+) (P.+) neg2 neg3
     ]
 
--- Test subtraction.
+-- | Test subtraction.
 testSubtraction = TestLabel "Subtraction tests" $ TestList
     [ binaryTest (-) (P.-) pos2 pos5
     , binaryTest (-) (P.-) neg2 pos5
@@ -73,7 +80,7 @@ testSubtraction = TestLabel "Subtraction tests" $ TestList
     , binaryTest (-) (P.-) neg2 neg5
     ]
 
--- Test multiplication.
+-- | Test multiplication.
 testMultiplication = TestLabel "Multiplication tests" $ TestList
     [ binaryTest (*) (P.*) pos2 pos5
     , binaryTest (*) (P.*) neg2 pos5
@@ -85,7 +92,7 @@ testMultiplication = TestLabel "Multiplication tests" $ TestList
     , binaryTest (*) (P.*) zero neg5
     ]
 
--- Test division.
+-- | Test division.
 testDivision = TestLabel "Division tests" $ TestList
     [ binaryTest (/) (P./) pos4 pos2
     , binaryTest (/) (P./) zero pos5
@@ -97,7 +104,7 @@ testDivision = TestLabel "Division tests" $ TestList
     ]
 
 
--- Collect the test cases.
+-- | Collect the test cases.
 tests = TestList
     [ testAsIntegral
     , testIncrDecr
@@ -109,3 +116,4 @@ tests = TestList
     ]
 
 main = runTestTT tests
+-- -}
