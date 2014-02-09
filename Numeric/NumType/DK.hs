@@ -1,157 +1,180 @@
-{-# LANGUAGE TypeFamilies
-           , DataKinds
-           , UndecidableInstances
-           , GADTs
-           , FlexibleInstances
-           , ScopedTypeVariables
-  #-}
+{-# LANGUAGE AutoDeriveTypeable #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
-module Numeric.NumType.DK where
+module Numeric.NumType.TF78 where
 
-import Prelude hiding ((+),(-),(*),(/),negate)
+import Data.Proxy
+import Data.Typeable
+import GHC.TypeLits hiding ((+)(), (*)(), (-)())
+import qualified GHC.TypeLits as T
+import Prelude hiding ((+), (-), (*), (/), negate, toInteger)
 import qualified Prelude
 
--- Naturals.
 
-data Nat0 = Z | S0 Nat0  -- Natural numbers including 0.
-data Nat1 = O | S1 Nat1  -- Natural numbers excluding 0 (traditional).
+-- Use the same fixity for operators as the Prelude.
+infixl 7  *, /
+infixl 6  +, -
 
--- Type synonyms to reduce brackets and whitespace.
+-- This definition allows both @P 0@ and @N 0@ despite the fact
+-- that only Z should be used. Behave!
+data NumType = P Nat | N Nat | Z deriving Typeable
 
-type SZ   = S0 Z
-type SS n = S0 (S0 n)
-type PZ   = P Z
-type PSZ  = P (S0 Z)
-type PS n = P (S0 n)
-type NO   = N O
-type NS n = N (S1 n)
+-- | Conversion from NumType to Nat.
+type family ToNat (n::NumType) :: Nat
+  where
+    ToNat Z = 0
+    ToNat (P n) = n
 
-type Neg3 = NS (S1 O)
-type Neg2 = NS O
-type Neg1 = NO
-type Zero = PZ
-type Pos1 = PSZ
-type Pos2 = PS SZ
-type Pos3 = PS (SS Z)
-type Pos4 = PS (SS SZ)
+-- | Conversion from Nat to NumType.
+type family FromNat (n::Nat) :: NumType
+  where
+    FromNat 0 = Z
+    FromNat n = P n
 
--- Conversions between the two types of naturals.
+type family Negate (n::NumType) :: NumType
+  where
+    Negate Z = Z
+    Negate (P 0) = Z -- Should never occur
+    Negate (N 0) = Z -- Should never occur
+    Negate (P n) = (N n)
+    Negate (N n) = (P n)
 
-type family ToN0 (n::Nat1) :: Nat0
-type instance ToN0  O     = S0 Z
-type instance ToN0 (S1 n) = S0 (ToN0 n)
+type family Succ (n::NumType) :: NumType
+  where
+    Succ Z = P 1
+    Succ (P n) = P (n T.+ 1)
+    Succ (N 0) = P 1 -- Should never occur
+    Succ (N 1) = Z
+    Succ (N n) = N (n T.- 1) 
 
-type family ToN1 (n::Nat0) :: Nat1
-type instance ToN1 SZ     = O
-type instance ToN1 (SS n) = S1 (ToN1 (S0 n))
+type family Pred (n::NumType) :: NumType
+  where
+    Pred Z = N 1
+    Pred (N n) = N (n T.+ 1)
+    Pred (P 0) = N 1 -- Should never occur
+    Pred (P 1) = Z
+    Pred (P n) = P (n T.- 1) 
 
--- Operations on N0.
+type family (n::NumType) + (m::NumType) :: NumType
+  where
+    Z + i = i
+    i + Z = i -- Redundant.
+    P n + P m = P (n T.+ m)
+    N n + N m = N (n T.+ m)
+    N n + i = Succ (N n) + Pred i
+    P n + i = Pred (P n) + Succ i
 
-type family   Add0 (n::Nat0) (m::Nat0) :: Nat0
-type instance Add0  Z  n    = n
-type instance Add0 (S0 n) m = Add0 n (S0 m)
+type family (n::NumType) - (m::NumType) :: NumType
+  where
+    i - j = i + Negate j
 
-type family   Mul0 (n::Nat0) (m::Nat0) :: Nat0
-type instance Mul0  Z  n    = Z
-type instance Mul0 (S0 n) m = Add0 m (Mul0 n m)
+type family (n::NumType) * (m::NumType) :: NumType
+  where
+    Z * i = Z
+    i * Z = Z
+    P n * P m = P (n T.* m)
+    N n * N m = P (n T.* m)
+    P n * N m = N (n T.* m)
+    N n * P m = N (n T.* m)
 
-type family   Sub0 (n::Nat0) (m::Nat0) :: Nat0
-type instance Sub0     n   Z     = n
-type instance Sub0 (S0 n) (S0 m) = Sub0 n m
+type family (n::NumType) / (m::NumType) :: NumType
+  where
+    Z / P n = Z
+    Z / N n = Z
+  --Div (P n) / (P m) = Succ (Div (P n - P m) (P m))
+    P n / P m = P (n ./ m)
+    N n / N m = P (n ./ m)
+    P n / N m = N (n ./ m)
+    N n / P m = N (n ./ m)
 
-type family   Div0 (n::Nat0) (m::Nat0) :: Nat0
-type instance Div0  Z     (S0 n) = Z
-type instance Div0 (S0 n) (S0 m) = S0 (Div0 (Sub0 (S0 n) (S0 m)) (S0 m))  -- Oh my!
-
--- For convenience, operations on N1.
-
-type family   Add1 (n::Nat1) (m::Nat1) :: Nat1
-type instance Add1 n m = ToN1 (Add0 (ToN0 n) (ToN0 m))
-
-type family   Mul1 (n::Nat1) (m::Nat1) :: Nat1
-type instance Mul1 n m = ToN1 (Mul0 (ToN0 n) (ToN0 m))
-
-type family   Sub1 (n::Nat1) (m::Nat1) :: Nat1
-type instance Sub1 n m = ToN1 (Sub0 (ToN0 n) (ToN0 m))
-
-type family   Div1 (n::Nat1) (m::Nat1) :: Nat1
-type instance Div1 n m = ToN1 (Div0 (ToN0 n) (ToN0 m))
-
-{-
-The integers are formed by the natural numbers (including 0) (0, 1, 2, 3, ...) together with the negatives of the non-zero natural numbers (−1, −2, −3, ...). They are known as Positive and Negative Integers respectively.
--}
-data INT = P Nat0 | N Nat1
-
-type family   Negate (i::INT) :: INT
-type instance Negate (N n)  = P (ToN0 n)
-type instance Negate PZ     = PZ
-type instance Negate (PS n) = N (ToN1 (S0 n))
-
-type family   Pred (i::INT) :: INT
-type instance Pred (N n)  = NS n
-type instance Pred (P Z)  = NO
-type instance Pred (PS n) = P n
-
-type family   Succ (i::INT) :: INT
-type instance Succ (NS n) = N n
-type instance Succ NO     = PZ
-type instance Succ (P n)  = PS n
-
-type family   Add (i::INT) (j::INT) :: INT
-type instance Add PZ     i = i
-type instance Add (PS n) i = Add (Pred (PS n)) (Succ i)
-type instance Add (N n)  i = Add (Succ (N  n))  (Pred i)
-
-type family   Sub (i::INT) (j::INT) :: INT
-type instance Sub i j = Add i (Negate j)
-
-type family   Mul (i::INT) (j::INT) :: INT
-type instance Mul (P n) (P m) = P (Mul0 n m)
-type instance Mul (P n) (N m) = Negate (P (Mul0 n (ToN0 m)))
-type instance Mul (N n) (P m) = Negate (P (Mul0 (ToN0 n) m))
-type instance Mul (N n) (N m) = P (Mul0 (ToN0 n) (ToN0 m))
-
-type family   Div (i::INT) (j::INT) :: INT
-type instance Div (P n) (P m) = P (Div0 n m)
-type instance Div (P n) (N m) = Negate (P (Div0 n (ToN0 m)))
-type instance Div (N n) (P m) = Negate (P (Div0 (ToN0 n) m))
-type instance Div (N n) (N m) = P (Div0 (ToN0 n) (ToN0 m))
+-- Division for Nats. Will behave badly for divide by zero.
+-- Used only for to help define the @(/)@ type family.
+type family (n::Nat) ./ (m::Nat) :: Nat
+  where
+    0 ./ n = 0                       -- Will return 0 for n = 0.
+    n ./ m = 1 T.+ ((n T.- m) ./ m)  -- Will infinite loop for m = 0?
 
 
--- ----------
-data INTRep :: INT -> * where
-  IZero :: INTRep (P Z)
-  Decr  :: INTRep i -> INTRep (Pred i)
-  Incr  :: INTRep i -> INTRep (Succ i)
-
-class ToNum i
-  where toNum :: Num a => INTRep i -> a
-instance ToNum (P Z)
-  where toNum = const 0
-instance (ToNum (P n)) => ToNum (PS n)
-  where toNum = (Prelude.+ 1) . toNum . Decr
-instance (ToNum (Negate (N n))) => ToNum (N n)
-  where toNum = Prelude.negate . toNum . negate
-
-instance (ToNum n) => Show (INTRep n) where show = (++"#") . show . toNum
+-- Some type synonyms for convenience (and consistency with FD version).
+type Zero = Z
+type Pos1 = P 1
+type Pos2 = P 2
+type Pos3 = P 3
+type Pos4 = P 4
+type Pos5 = P 5
+type Neg1 = N 1
+type Neg2 = N 2
+type Neg3 = N 3
+type Neg4 = N 4
+type Neg5 = N 5
 
 
-(+) :: INTRep i -> INTRep j -> INTRep (Add i j); (+) = undefined
-(-) :: INTRep i -> INTRep j -> INTRep (Sub i j); (-) = undefined
-(*) :: INTRep i -> INTRep j -> INTRep (Mul i j); (*) = undefined
-(/) :: INTRep i -> INTRep j -> INTRep (Div i j); (/) = undefined
-negate :: INTRep i -> INTRep (Negate i); negate = undefined
+-- Enough work at the kind/type level. Bringing it down to type/value level ...
 
-zero  = IZero
-neg1 = Decr IZero
-neg2 = Decr neg1
-neg3 = Decr neg2
-neg4 = Decr neg3
-neg5 = Decr neg4
-neg6 = Decr neg5
-pos1 = Incr IZero
-pos2 = Incr pos1
-pos3 = Incr pos2
-pos4 = Incr pos3
-pos5 = Incr pos4
-pos6 = Incr pos5
+
+-- | Proxy for 'NumType's.
+data NT (n::NumType) deriving Typeable
+--data NT :: NumType -> *
+
+-- Shorthands for convenience.
+type NZ   = NT  Z
+type NP n = NT (P n)
+type NN n = NT (N n)
+
+
+-- Value level names.
+zero :: NZ  ; zero = undefined
+pos1 :: NP 1; pos1 = undefined
+pos2 :: NP 2; pos2 = undefined
+pos3 :: NP 3; pos3 = undefined
+pos4 :: NP 4; pos4 = undefined
+pos5 :: NP 5; pos5 = undefined
+neg1 :: NN 1; neg1 = undefined
+neg2 :: NN 2; neg2 = undefined
+neg3 :: NN 3; neg3 = undefined
+neg4 :: NN 4; neg4 = undefined
+neg5 :: NN 5; neg5 = undefined
+
+-- Value level operators.
+(+) :: NT i -> NT j -> NT (i + j); (+) = undefined
+(-) :: NT i -> NT j -> NT (i - j); (-) = undefined
+(*) :: NT i -> NT j -> NT (i * j); (*) = undefined
+(/) :: NT i -> NT j -> NT (i / j); (/) = undefined
+negate :: NT i -> NT (Negate i); negate = undefined
+
+
+-- | Conversion to @Integer@.
+class ToInteger nt where toInteger :: nt -> Integer
+
+instance ToInteger NZ where toInteger = const 0
+
+instance KnownNat n => ToInteger (NP n) where
+  toInteger = natVal . (undefined :: NP n -> Proxy n)
+
+instance KnownNat n => ToInteger (NN n) where
+  toInteger = Prelude.negate . natVal . (undefined :: NN n -> Proxy n)
+--toInteger = Prelude.negate . toInteger . negate -- More complicated constraint.
+
+
+-- | Conversion to @Num@ instance.
+toNum :: (ToInteger nt, Num a) => nt -> a
+toNum = fromInteger . toInteger
+
+
+-- Show instance.
+instance ToInteger (NT i) => Show (NT i) where show = (++"#") . show . toInteger
+
+
+main = do
+    putStrLn "Hola"
+    print $ pos3 + neg2
+    print $ toInteger zero
+    print $ toInteger neg1
+    print $ toInteger pos1
+    print $ pos3 * neg2
+    print $ pos3 / neg1
+    print $ pos3 * neg2 / neg3

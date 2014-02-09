@@ -1,8 +1,8 @@
 Name:                numtype-dk
-Version:             0.1
+Version:             0.2
 License:             BSD3
 License-File:        LICENSE
-Copyright:           Bjorn Buckwalter 2012
+Copyright:           Bjorn Buckwalter 2012-2014
 Author:              Bjorn Buckwalter
 Maintainer:          bjorn.buckwalter@gmail.com
 Stability:           experimental
@@ -24,7 +24,7 @@ Description:
     the NumTypes are implemented using type families rather than
     functional dependencies.
 
-    Requires GHC 7.4 or later.
+    Requires GHC 7.8.1 or later.
 
 Category:            Math
 Build-Type:          Simple
