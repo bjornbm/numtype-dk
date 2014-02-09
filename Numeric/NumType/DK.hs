@@ -10,9 +10,9 @@ module Numeric.NumType.DK where
 
 import Data.Proxy
 import Data.Typeable
-import GHC.TypeLits hiding ((+)(), (*)(), (-)())
+import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
 import qualified GHC.TypeLits as T
-import Prelude hiding ((+), (-), (*), (/), negate, toInteger)
+import Prelude hiding ((+), (-), (*), (/), (^), negate, toInteger)
 import qualified Prelude
 
 
@@ -78,6 +78,20 @@ type family (i::NumType) / (i'::NumType) :: NumType
     N n / N n' = P n / P n'
     i / i' = (i - i') / i' + Pos1  -- P n / P n'
 
+-- | NumType exponentiation.
+type family (i::NumType) ^ (i'::NumType) :: NumType
+  where
+    i ^ Z = Pos1
+    Z ^ P n = Z
+    (P n) ^ P n' = P (n T.^ n')
+    (N n) ^ P n' = P (n T.^ n') * NNegate n'
+
+-- | Helper type family used to get the correct sign when exponentiating
+  -- negative NumTypes.
+type family NNegate (n::Nat) :: NumType
+  where
+    NNegate 0 = P 1
+    NNegate n = Negate (NNegate (n T.- 1))
 
 -- Some type synonyms for convenience (and consistency with FD version).
 type Zero = Z
@@ -124,6 +138,7 @@ neg5 :: NN 5; neg5 = undefined
 (-) :: NT i -> NT i' -> NT (i - i'); (-) = undefined
 (*) :: NT i -> NT i' -> NT (i * i'); (*) = undefined
 (/) :: NT i -> NT i' -> NT (i / i'); (/) = undefined
+(^) :: NT i -> NT i' -> NT (i ^ i'); (^) = undefined
 negate :: NT i -> NT (Negate i); negate = undefined
 
 

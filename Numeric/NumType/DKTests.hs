@@ -1,8 +1,8 @@
 module Numeric.NumType.DKTests where
 
 import Numeric.NumType.DK
-import Prelude hiding ((*), (/), (+), (-), negate, toInteger)
-import qualified Prelude as P ((*), (/), (+), (-), negate)
+import Prelude hiding ((*), (/), (+), (-), (^), negate, toInteger)
+import qualified Prelude as P ((*), (/), (+), (-), (^), negate)
 import Test.HUnit
 
 
@@ -103,6 +103,15 @@ testDivision = TestLabel "Division tests" $ TestList
     , binaryTest (/) (P./) pos5 pos5
     ]
 
+-- | Test exponentiation.
+testExponentiation = TestLabel "Exponentiation tests" $ TestList
+    [ binaryTest (^) (P.^) pos2 pos5
+    , binaryTest (^) (P.^) zero pos5
+    , binaryTest (^) (P.^) neg2 pos5
+    , binaryTest (^) (P.^) pos5 zero
+    , binaryTest (^) (P.^) zero zero
+    , binaryTest (^) (P.^) neg5 zero
+    ]
 
 -- | Collect the test cases.
 tests = TestList
@@ -113,6 +122,7 @@ tests = TestList
     , testSubtraction
     , testMultiplication
     , testDivision
+    , testExponentiation
     ]
 
 main = runTestTT tests
