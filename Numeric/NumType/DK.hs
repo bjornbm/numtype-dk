@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Numeric.NumType.DK where
 
@@ -21,82 +22,61 @@ infixl 6  +, -
 
 -- This definition allows both @P 0@ and @N 0@ despite the fact
 -- that only Z should be used. Behave!
-data NumType = P Nat | N Nat | Z deriving Typeable
+--
+-- I don't ses how I can constrain the @Nat@s at the kind level or otherwise
+-- avoid this unfortunate situation without significant tradeoffs in
+-- readability. One option would be to have e.g. @P n@ mean @n + 1@, but
+-- that would make reading types much less intuitive.
+data NumType = P Nat  -- ^ Positive numbers.
+             | N Nat  -- ^ Negative numbers.
+             | Z      -- ^ Zero.
+             deriving Typeable
 
--- | Conversion from NumType to Nat.
-type family ToNat (n::NumType) :: Nat
-  where
-    ToNat Z = 0
-    ToNat (P n) = n
 
--- | Conversion from Nat to NumType.
-type family FromNat (n::Nat) :: NumType
-  where
-    FromNat 0 = Z
-    FromNat n = P n
-
+-- | NumType negation.
 type family Negate (n::NumType) :: NumType
   where
     Negate Z = Z
-    Negate (P 0) = Z -- Should never occur
-    Negate (N 0) = Z -- Should never occur
     Negate (P n) = (N n)
     Negate (N n) = (P n)
 
-type family Succ (n::NumType) :: NumType
-  where
-    Succ Z = P 1
-    Succ (P n) = P (n T.+ 1)
-    Succ (N 0) = P 1 -- Should never occur
-    Succ (N 1) = Z
-    Succ (N n) = N (n T.- 1) 
-
-type family Pred (n::NumType) :: NumType
-  where
-    Pred Z = N 1
-    Pred (N n) = N (n T.+ 1)
-    Pred (P 0) = N 1 -- Should never occur
-    Pred (P 1) = Z
-    Pred (P n) = P (n T.- 1) 
-
-type family (n::NumType) + (m::NumType) :: NumType
+-- | NumType addition.
+type family (n::NumType) + (n'::NumType) :: NumType
   where
     Z + i = i
-    i + Z = i -- Redundant.
-    P n + P m = P (n T.+ m)
-    N n + N m = N (n T.+ m)
-    N n + i = Succ (N n) + Pred i
-    P n + i = Pred (P n) + Succ i
+    i + Z = i
+    P n + P n' = P (n T.+ n')
+    N n + N n' = N (n T.+ n')
+    P 1 + N 1 = Z
+    P 1 + N n = N (n T.- 1)
+    P n + N 1 = P (n T.- 1)
+    P n + N n' = P (n T.- 1) + N (n' T.- 1)
+    N n + P n' = P n' + N n  -- Commutativity.
 
-type family (n::NumType) - (m::NumType) :: NumType
+-- | NumType subtraction.
+type family (n::NumType) - (n'::NumType) :: NumType
   where
-    i - j = i + Negate j
+    i - i' = i + Negate i'
 
-type family (n::NumType) * (m::NumType) :: NumType
+-- | NumType multiplication.
+type family (n::NumType) * (n'::NumType) :: NumType
   where
     Z * i = Z
     i * Z = Z
-    P n * P m = P (n T.* m)
-    N n * N m = P (n T.* m)
-    P n * N m = N (n T.* m)
-    N n * P m = N (n T.* m)
+    P n * P n' = P (n T.* n')
+    N n * N n' = P (n T.* n')
+    P n * N n' = N (n T.* n')
+    N n * P n' = N (n T.* n')
 
-type family (n::NumType) / (m::NumType) :: NumType
+-- | NumType division.
+type family (i::NumType) / (i'::NumType) :: NumType
   where
     Z / P n = Z
     Z / N n = Z
-  --Div (P n) / (P m) = Succ (Div (P n - P m) (P m))
-    P n / P m = P (n ./ m)
-    N n / N m = P (n ./ m)
-    P n / N m = N (n ./ m)
-    N n / P m = N (n ./ m)
-
--- Division for Nats. Will behave badly for divide by zero.
--- Used only for to help define the @(/)@ type family.
-type family (n::Nat) ./ (m::Nat) :: Nat
-  where
-    0 ./ n = 0                       -- Will return 0 for n = 0.
-    n ./ m = 1 T.+ ((n T.- m) ./ m)  -- Will infinite loop for m = 0?
+    P n / N n' = Negate (P n / P n')
+    N n / P n' = Negate (P n / P n')
+    N n / N n' = P n / P n'
+    i / i' = (i - i') / i' + Pos1  -- P n / P n'
 
 
 -- Some type synonyms for convenience (and consistency with FD version).
@@ -140,24 +120,23 @@ neg4 :: NN 4; neg4 = undefined
 neg5 :: NN 5; neg5 = undefined
 
 -- Value level operators.
-(+) :: NT i -> NT j -> NT (i + j); (+) = undefined
-(-) :: NT i -> NT j -> NT (i - j); (-) = undefined
-(*) :: NT i -> NT j -> NT (i * j); (*) = undefined
-(/) :: NT i -> NT j -> NT (i / j); (/) = undefined
+(+) :: NT i -> NT i' -> NT (i + i'); (+) = undefined
+(-) :: NT i -> NT i' -> NT (i - i'); (-) = undefined
+(*) :: NT i -> NT i' -> NT (i * i'); (*) = undefined
+(/) :: NT i -> NT i' -> NT (i / i'); (/) = undefined
 negate :: NT i -> NT (Negate i); negate = undefined
 
 
 -- | Conversion to @Integer@.
-class ToInteger nt where toInteger :: nt -> Integer
-
-instance ToInteger NZ where toInteger = const 0
-
+class ToInteger nt where
+  toInteger :: nt -> Integer
+instance ToInteger NZ where
+  toInteger = const 0
 instance KnownNat n => ToInteger (NP n) where
   toInteger = natVal . (undefined :: NP n -> Proxy n)
-
 instance KnownNat n => ToInteger (NN n) where
   toInteger = Prelude.negate . natVal . (undefined :: NN n -> Proxy n)
---toInteger = Prelude.negate . toInteger . negate -- More complicated constraint.
+--toInteger = Prelude.negate . toInteger . negate -- Complicates the constraint.
 
 
 -- | Conversion to @Num@ instance.
@@ -167,3 +146,38 @@ toNum = fromInteger . toInteger
 
 -- Show instance.
 instance ToInteger (NT i) => Show (NT i) where show = (++"#") . show . toInteger
+
+
+{-
+-- | Conversion from NumType to Nat.
+type family ToNat (n::NumType) :: Nat
+  where
+    ToNat Z = 0
+    ToNat (P n) = n
+
+-- | Conversion from Nat to NumType.
+type family FromNat (n::Nat) :: NumType
+  where
+    FromNat 0 = Z
+    FromNat n = P n
+-}
+
+{-
+-- Here is some modofications/addtional code that can be added to provide some
+-- clues to type errors involving incorrect division.
+
+{-# LANGUAGE FlexibleContexts #-}
+
+type family Abs (n::NumType) :: NumType
+  where
+    Abs Z = Z
+    Abs (P n) = P n
+    Abs (N n) = P n
+
+class Divide (i::NumType) (i'::NumType)
+instance Divide Z (P n)
+instance Divide Z (N n)
+instance Divide (P n - P n') (P n') => Divide (P n) (P n')
+
+(/) :: Divide (Abs i) (Abs i') => NT i -> NT i' -> NT (i / i'); (/) = undefined
+-}
