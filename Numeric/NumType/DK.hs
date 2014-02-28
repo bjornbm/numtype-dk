@@ -24,14 +24,15 @@ infixl 6  +, -
 -- Natural numbers
 -- ===============
 
-data Nat0 = Z | S0 Nat0  -- Natural numbers starting at 0.
-data Nat1 = O | S1 Nat1  -- Natural numbers starting at 1.
+--data Nat0 = Z | S0 Nat0  -- Natural numbers starting at 0.
+data Nat1 = O | S Nat1  -- Natural numbers starting at 1.
 
 
 -- Integers
 -- ========
 
-data NumType = Pos Nat0  -- 0, 1, 2, 3, ...
+data NumType = Pos Nat1  -- 1, 2, 3, ...
+             | Zero      -- 0
              | Neg Nat1  -- -1, -2, -3, ...
 
 -- Type synonyms for convenience.
@@ -39,9 +40,8 @@ type Neg5 = Pred Neg4
 type Neg4 = Pred Neg3
 type Neg3 = Pred Neg2
 type Neg2 = Pred Neg1
-type Neg1 = Neg O      -- Used in this module.
-type Zero = Pos Z      -- Used in this module.
-type Pos1 = Succ Zero  -- Used in this module.
+type Neg1 = Neg O  -- Used in this module.
+type Pos1 = Pos O  -- Used in this module.
 type Pos2 = Succ Pos1
 type Pos3 = Succ Pos2
 type Pos4 = Succ Pos3
@@ -52,14 +52,16 @@ type Pos5 = Succ Pos4
 -- ----------------
 
 type family Pred (i::NumType) :: NumType where
-  Pred (Pos (S0 n)) = Pos n
   Pred Zero         = Neg1
-  Pred (Neg n)      = Neg (S1 n)
+  Pred Pos1         = Zero
+  Pred (Pos (S n)) = Pos n
+  Pred (Neg n)      = Neg (S n)
 
 type family Succ (i::NumType) :: NumType where
-  Succ (Neg (S1 n)) = Neg n
+  Succ (Neg (S n)) = Neg n
   Succ Neg1         = Zero
-  Succ (Pos n)      = Pos (S0 n)
+  Succ Zero         = Pos1
+  Succ (Pos n)      = Pos (S n)
 
 -- | NumType negation.
 type family Negate (i::NumType) :: NumType where
@@ -70,7 +72,7 @@ type family Negate (i::NumType) :: NumType where
 -- | Absolute value.
 type family Abs (i::NumType) :: NumType where
   Abs (Neg n) = Negate (Neg n)
-  Abs i = i  -- Abs (Pos n)
+  Abs i = i  -- Abs (Pos n) or Abs Zero
 
 -- | Signum.
 type family Signum (i::NumType) :: NumType where
@@ -107,7 +109,7 @@ type family (i::NumType) * (i'::NumType) :: NumType
 type family (i::NumType) / (i'::NumType) :: NumType
   where
     -- `Zero / n = Zero` would allow division by zero.
-    Zero / Pos (S0 n) = Zero
+    Zero / Pos n = Zero
     Zero / Neg n = Zero
     i / Neg n = Negate (i / Negate (Neg n))
     Neg n / i = Negate (Negate (Neg n) / i)
@@ -117,7 +119,7 @@ type family (i::NumType) / (i'::NumType) :: NumType
 type family (i::NumType) ^ (i'::NumType) :: NumType
   where
     i ^ Zero = Pos1
-    Zero ^ Pos n = Zero
+    --Zero ^ Pos n = Zero  -- Redundant.
     i ^ Pos n = i * i ^ Pred (Pos n)
 
 
@@ -164,8 +166,8 @@ class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
 
 instance KnownNumType Zero where toNum _ = 0
 
-instance KnownNumType (Pos n) => KnownNumType (Pos (S0 n))
-  where toNum Proxy = toNum (Proxy :: Proxy (Pos n)) Prelude.+ 1
+instance KnownNumType (Pred (Pos n)) => KnownNumType (Pos n)
+  where toNum = (1 Prelude.+) . toNum . pred
 
 instance KnownNumType (Negate (Neg n)) => KnownNumType (Neg n)
   where toNum = Prelude.negate . toNum . negate
