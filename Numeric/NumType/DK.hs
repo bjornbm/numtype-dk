@@ -17,6 +17,7 @@ import qualified Prelude
 
 
 -- Use the same fixity for operators as the Prelude.
+infixr 8  ^
 infixl 7  *, /
 infixl 6  +, -
 
