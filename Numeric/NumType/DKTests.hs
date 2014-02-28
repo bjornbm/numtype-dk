@@ -4,8 +4,8 @@
 module Numeric.NumType.DKTests where
 
 import Numeric.NumType.DK
-import Prelude hiding ((*), (/), (+), (-), (^), negate, abs, signum)
-import qualified Prelude as P ((*), (/), (+), (-), (^), negate, abs, signum)
+import Prelude hiding ((*), (/), (+), (-), (^), pred, succ, negate, abs, signum)
+import qualified Prelude as P ((*), (/), (+), (-), (^), pred, succ, negate, abs, signum)
 import Data.Proxy
 import Test.HUnit
 
@@ -66,6 +66,8 @@ testIncrDecr = TestLabel "Increment and decrement tests" $ TestList
                        , unaryTest' (+ neg1) (P.- 1) x
                        , unaryTest' (\x -> x - neg1) (P.+ 1) x
                        , unaryTest' (\x -> x - pos1) (P.- 1) x
+                       , unaryTest' pred P.pred x
+                       , unaryTest' succ P.succ x
                        ]
 
 -- | Test negation.
