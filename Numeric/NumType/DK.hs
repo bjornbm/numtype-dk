@@ -2,17 +2,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Numeric.NumType.DK where
 
 import Data.Proxy
-import Data.Typeable
-import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
-import qualified GHC.TypeLits as T
-import Prelude hiding ((+), (-), (*), (/), (^), negate, toInteger)
+import Prelude hiding ((+), (-), (*), (/), (^), negate, abs, signum)
 import qualified Prelude
 
 
@@ -21,179 +20,150 @@ infixr 8  ^
 infixl 7  *, /
 infixl 6  +, -
 
--- This definition allows both @P 0@ and @N 0@ despite the fact
--- that only Z should be used. Behave!
---
--- I don't ses how I can constrain the @Nat@s at the kind level or otherwise
--- avoid this unfortunate situation without significant tradeoffs in
--- readability. One option would be to have e.g. @P n@ mean @n + 1@, but
--- that would make reading types much less intuitive.
-data NumType = P Nat  -- ^ Positive numbers.
-             | N Nat  -- ^ Negative numbers.
-             | Z      -- ^ Zero.
-             deriving Typeable
 
+-- Natural numbers
+-- ===============
+
+data Nat0 = Z | S0 Nat0  -- Natural numbers starting at 0.
+data Nat1 = O | S1 Nat1  -- Natural numbers starting at 1.
+
+
+-- Integers
+-- ========
+
+data NumType = Pos Nat0  -- 0, 1, 2, 3, ...
+             | Neg Nat1  -- -1, -2, -3, ...
+
+-- Type synonyms for convenience.
+type Neg5 = Pred Neg4
+type Neg4 = Pred Neg3
+type Neg3 = Pred Neg2
+type Neg2 = Pred Neg1
+type Neg1 = Neg O      -- Used in this module.
+type Zero = Pos Z      -- Used in this module.
+type Pos1 = Succ Zero  -- Used in this module.
+type Pos2 = Succ Pos1
+type Pos3 = Succ Pos2
+type Pos4 = Succ Pos3
+type Pos5 = Succ Pos4
+
+
+-- Unary operations
+-- ----------------
+
+type family Pred (i::NumType) :: NumType where
+  Pred (Pos (S0 n)) = Pos n
+  Pred Zero         = Neg1
+  Pred (Neg n)      = Neg (S1 n)
+
+type family Succ (i::NumType) :: NumType where
+  Succ (Neg (S1 n)) = Neg n
+  Succ Neg1         = Zero
+  Succ (Pos n)      = Pos (S0 n)
 
 -- | NumType negation.
-type family Negate (n::NumType) :: NumType
-  where
-    Negate Z = Z
-    Negate (P n) = (N n)
-    Negate (N n) = (P n)
+type family Negate (i::NumType) :: NumType where
+  Negate Zero = Zero
+  Negate (Pos n) = Pred (Negate (Pred (Pos n)))
+  Negate (Neg n) = Succ (Negate (Succ (Neg n)))
+
+-- | Absolute value.
+type family Abs (i::NumType) :: NumType where
+  Abs (Neg n) = Negate (Neg n)
+  Abs i = i  -- Abs (Pos n)
+
+-- | Signum.
+type family Signum (i::NumType) :: NumType where
+  Signum (Neg n) = Neg1
+  Signum Zero = Zero
+  Signum i = Pos1
+
+
+-- Binary operations
+-- -----------------
 
 -- | NumType addition.
-type family (n::NumType) + (n'::NumType) :: NumType
-  where
-    Z + i = i
-    i + Z = i
-    P n + P n' = P (n T.+ n')
-    N n + N n' = N (n T.+ n')
-    P 1 + N 1 = Z
-    P 1 + N n = N (n T.- 1)
-    P n + N 1 = P (n T.- 1)
-    P n + N n' = P (n T.- 1) + N (n' T.- 1)
-    N n + P n' = P n' + N n  -- Commutativity.
+type family (i::NumType) + (i'::NumType) :: NumType where
+  Zero + i = i
+  i + Zero = i
+  i + Pos n = Succ i + Pred (Pos n)
+  i + Neg n = Pred i + Succ (Neg n)
 
 -- | NumType subtraction.
-type family (n::NumType) - (n'::NumType) :: NumType
-  where
-    i - i' = i + Negate i'
+type family (i::NumType) - (i'::NumType) :: NumType where
+  i - i' = i + Negate i'
 
 -- | NumType multiplication.
-type family (n::NumType) * (n'::NumType) :: NumType
+type family (i::NumType) * (i'::NumType) :: NumType
   where
-    Z * i = Z
-    i * Z = Z
-    P n * P n' = P (n T.* n')
-    N n * N n' = P (n T.* n')
-    P n * N n' = N (n T.* n')
-    N n * P n' = N (n T.* n')
+    Zero * i = Zero
+    i * Zero = Zero
+    i * Pos n = i + i * Pred (Pos n)
+    i * i' = Negate (i * Negate i')  -- i * Neg n
+    --i * Neg1 = Negate i
+    --i * Neg n = Negate (i * Negate (Neg n))
 
 -- | NumType division.
 type family (i::NumType) / (i'::NumType) :: NumType
   where
-    Z / P n = Z
-    Z / N n = Z
-    P n / N n' = Negate (P n / P n')
-    N n / P n' = Negate (P n / P n')
-    N n / N n' = P n / P n'
-    i / i' = (i - i') / i' + Pos1  -- P n / P n'
+    -- `Zero / n = Zero` would allow division by zero.
+    Zero / Pos (S0 n) = Zero
+    Zero / Neg n = Zero
+    i / Neg n = Negate (i / Negate (Neg n))
+    Neg n / i = Negate (Negate (Neg n) / i)
+    i / i' = (i - i') / i' + Pos1  -- Pos n / Pos n'
 
 -- | NumType exponentiation.
 type family (i::NumType) ^ (i'::NumType) :: NumType
   where
-    i ^ Z = Pos1
-    Z ^ P n = Z
-    (P n) ^ P n' = P (n T.^ n')
-    (N n) ^ P n' = P (n T.^ n') * NNegate n'
-
--- | Helper type family used to get the correct sign when exponentiating
-  -- negative NumTypes.
-type family NNegate (n::Nat) :: NumType
-  where
-    NNegate 0 = P 1
-    NNegate n = Negate (NNegate (n T.- 1))
-
--- Some type synonyms for convenience (and consistency with FD version).
-type Zero = Z
-type Pos1 = P 1
-type Pos2 = P 2
-type Pos3 = P 3
-type Pos4 = P 4
-type Pos5 = P 5
-type Neg1 = N 1
-type Neg2 = N 2
-type Neg3 = N 3
-type Neg4 = N 4
-type Neg5 = N 5
+    i ^ Zero = Pos1
+    Zero ^ Pos n = Zero
+    i ^ Pos n = i * i ^ Pred (Pos n)
 
 
--- Enough work at the kind/type level. Bringing it down to type/value level ...
+-- Term level
+-- ==========
+
+-- Term level operators
+-- --------------------
+
+negate :: Proxy i -> Proxy (Negate i); negate _ = Proxy
+abs    :: Proxy i -> Proxy (Abs    i); abs    _ = Proxy
+signum :: Proxy i -> Proxy (Signum i); signum _ = Proxy
+
+(+) :: Proxy i -> Proxy i' -> Proxy (i + i'); _ + _ = Proxy
+(-) :: Proxy i -> Proxy i' -> Proxy (i - i'); _ - _ = Proxy
+(*) :: Proxy i -> Proxy i' -> Proxy (i * i'); _ * _ = Proxy
+(/) :: Proxy i -> Proxy i' -> Proxy (i / i'); _ / _ = Proxy
+(^) :: Proxy i -> Proxy i' -> Proxy (i ^ i'); _ ^ _ = Proxy
 
 
--- | Proxy for 'NumType's.
-data NT (n::NumType) deriving Typeable
---data NT :: NumType -> *
+-- Term level TypeNats for convenience
+-- -----------------------------------
 
--- Shorthands for convenience.
-type NZ   = NT  Z
-type NP n = NT (P n)
-type NN n = NT (N n)
-
-
--- Value level names.
-zero :: NZ  ; zero = undefined
-pos1 :: NP 1; pos1 = undefined
-pos2 :: NP 2; pos2 = undefined
-pos3 :: NP 3; pos3 = undefined
-pos4 :: NP 4; pos4 = undefined
-pos5 :: NP 5; pos5 = undefined
-neg1 :: NN 1; neg1 = undefined
-neg2 :: NN 2; neg2 = undefined
-neg3 :: NN 3; neg3 = undefined
-neg4 :: NN 4; neg4 = undefined
-neg5 :: NN 5; neg5 = undefined
-
--- Value level operators.
-(+) :: NT i -> NT i' -> NT (i + i'); (+) = undefined
-(-) :: NT i -> NT i' -> NT (i - i'); (-) = undefined
-(*) :: NT i -> NT i' -> NT (i * i'); (*) = undefined
-(/) :: NT i -> NT i' -> NT (i / i'); (/) = undefined
-(^) :: NT i -> NT i' -> NT (i ^ i'); (^) = undefined
-negate :: NT i -> NT (Negate i); negate = undefined
+neg5 = Proxy :: Proxy Neg5
+neg4 = Proxy :: Proxy Neg4
+neg3 = Proxy :: Proxy Neg3
+neg2 = Proxy :: Proxy Neg2
+neg1 = Proxy :: Proxy Neg1
+zero = Proxy :: Proxy Zero
+pos1 = Proxy :: Proxy Pos1
+pos2 = Proxy :: Proxy Pos2
+pos3 = Proxy :: Proxy Pos3
+pos4 = Proxy :: Proxy Pos4
+pos5 = Proxy :: Proxy Pos5
 
 
--- | Conversion to @Integer@.
-class ToInteger nt where
-  toInteger :: nt -> Integer
-instance ToInteger NZ where
-  toInteger = const 0
-instance KnownNat n => ToInteger (NP n) where
-  toInteger = natVal . (undefined :: NP n -> Proxy n)
-instance KnownNat n => ToInteger (NN n) where
-  toInteger = Prelude.negate . natVal . (undefined :: NN n -> Proxy n)
---toInteger = Prelude.negate . toInteger . negate -- Complicates the constraint.
+-- Reification
+-- -----------
 
+-- | Conversion to a @Num@.
+class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
 
--- | Conversion to @Num@ instance.
-toNum :: (ToInteger nt, Num a) => nt -> a
-toNum = fromInteger . toInteger
+instance KnownNumType Zero where toNum _ = 0
 
+instance KnownNumType (Pos n) => KnownNumType (Pos (S0 n))
+  where toNum Proxy = toNum (Proxy :: Proxy (Pos n)) Prelude.+ 1
 
--- Show instance.
-instance ToInteger (NT i) => Show (NT i) where show = (++"#") . show . toInteger
-
-
-{-
--- | Conversion from NumType to Nat.
-type family ToNat (n::NumType) :: Nat
-  where
-    ToNat Z = 0
-    ToNat (P n) = n
-
--- | Conversion from Nat to NumType.
-type family FromNat (n::Nat) :: NumType
-  where
-    FromNat 0 = Z
-    FromNat n = P n
--}
-
-{-
--- Here is some modofications/addtional code that can be added to provide some
--- clues to type errors involving incorrect division.
-
-{-# LANGUAGE FlexibleContexts #-}
-
-type family Abs (n::NumType) :: NumType
-  where
-    Abs Z = Z
-    Abs (P n) = P n
-    Abs (N n) = P n
-
-class Divide (i::NumType) (i'::NumType)
-instance Divide Z (P n)
-instance Divide Z (N n)
-instance Divide (P n - P n') (P n') => Divide (P n) (P n')
-
-(/) :: Divide (Abs i) (Abs i') => NT i -> NT i' -> NT (i / i'); (/) = undefined
--}
+instance KnownNumType (Negate (Neg n)) => KnownNumType (Neg n)
+  where toNum = Prelude.negate . toNum . negate
