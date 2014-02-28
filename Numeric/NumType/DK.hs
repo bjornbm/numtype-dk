@@ -87,7 +87,7 @@ type family (i::NumType) + (i'::NumType) :: NumType where
   Zero + i = i
   i + Zero = i
   i + Pos n = Succ i + Pred (Pos n)
-  i + Neg n = Pred i + Succ (Neg n)
+  i + i'    = Pred i + Succ i'  -- i + Neg n
 
 -- | NumType subtraction.
 type family (i::NumType) - (i'::NumType) :: NumType where
