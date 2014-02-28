@@ -1,12 +1,9 @@
 {-# LANGUAGE AutoDeriveTypeable #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE RankNTypes #-}
 
 module Numeric.NumType.DK where
 
@@ -117,7 +114,7 @@ type family (i::NumType) / (i'::NumType) :: NumType
 type family (i::NumType) ^ (i'::NumType) :: NumType
   where
     i ^ Zero = Pos1
-    Zero ^ Pos n = Zero
+    --Zero ^ Pos n = Zero  -- Redundant.
     i ^ Pos n = i * i ^ Pred (Pos n)
 
 
@@ -164,8 +161,8 @@ class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
 
 instance KnownNumType Zero where toNum _ = 0
 
-instance KnownNumType (Pos n) => KnownNumType (Pos (S0 n))
-  where toNum Proxy = toNum (Proxy :: Proxy (Pos n)) Prelude.+ 1
+instance KnownNumType (Pred (Pos (S0 n))) => KnownNumType (Pos (S0 n))
+  where toNum = (1 Prelude.+) . toNum . pred
 
 instance KnownNumType (Negate (Neg n)) => KnownNumType (Neg n)
   where toNum = Prelude.negate . toNum . negate
