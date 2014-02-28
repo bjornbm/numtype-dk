@@ -1,34 +1,47 @@
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE DataKinds #-}
+
 module Numeric.NumType.DKTests where
 
 import Numeric.NumType.DK
-import Prelude hiding ((*), (/), (+), (-), (^), negate, toInteger)
-import qualified Prelude as P ((*), (/), (+), (-), (^), negate)
+import Prelude hiding ((*), (/), (+), (-), (^), negate, abs, signum)
+import qualified Prelude as P ((*), (/), (+), (-), (^), negate, abs, signum)
+import Data.Proxy
 import Test.HUnit
 
 
 -- | Compares a type level unary function with a value level unary function
   -- by converting 'NumType' to a @Num@. This assumes that the 'toNum'
   -- function is solid.
-unaryTest :: (ToInteger n, ToInteger n', Num a, Eq a, Show a)
-          => (n -> n') -> (a -> a) -> n -> Test
+unaryTest :: (KnownNumType i, KnownNumType i', Num a, Eq a, Show a)
+          => (Proxy i -> Proxy i') -> (a -> a) -> Proxy i -> Test
 unaryTest f f' x = TestCase $ assertEqual
-    "Unary function Integral equivalence"
+    "Unary function Num equivalence"
     (f' (toNum x)) (toNum (f x))
 
 -- | 'unaryTest' with @Num a@ fixed to @Integer@. This is needed by
   -- 'testIncrDecr'.
-unaryTest' :: (ToInteger n, ToInteger n')
-          => (n -> n') -> (Integer -> Integer) -> n -> Test
+unaryTest' :: (KnownNumType i, KnownNumType i')
+          => (Proxy i -> Proxy i') -> (Integer -> Integer) -> Proxy i -> Test
 unaryTest' = unaryTest
 
 -- | Compares a type level binary function with a value level binary function
-  -- by converting 'NumType' to 'Integral'. This assumes that the 'toIntegral'
+  -- by converting 'NumType' to 'Num'. This assumes that the 'toNum'
   -- function is solid.
-binaryTest :: (ToInteger n, ToInteger n', ToInteger n'', Num a, Eq a, Show a)
-           => (n -> n' -> n'') -> (a -> a -> a) -> n -> n' -> Test
+binaryTest :: (KnownNumType i, KnownNumType i', KnownNumType i'', Num a, Eq a, Show a)
+           => (Proxy i -> Proxy i' -> Proxy i'')
+           -> (a -> a -> a)
+           -> Proxy i -> Proxy i' -> Test
 binaryTest f f' x y = TestCase $ assertEqual
-    "Binary function Integral equivalence"
+    "Binary function Num equivalence"
     (f' (toNum x) (toNum y)) (toNum (f x y))
+
+binaryTest' :: (KnownNumType i, KnownNumType i', KnownNumType i'', Num a, Eq a, Show a)
+           => (Proxy i -> Proxy i' -> Proxy i'')
+           -> (Integer -> Integer -> Integer)
+           -> Proxy i -> Proxy i' -> Test
+binaryTest' = binaryTest
+
 
 -- | Test that conversion to 'Num a' works as expected. This is sort of a
   -- prerequisite for the other tests.
@@ -62,6 +75,24 @@ testNegate = TestLabel "Negation tests" $ TestList
     , unaryTest negate P.negate zero
     , unaryTest negate P.negate pos1
     , unaryTest negate P.negate pos1
+    ]
+
+-- | Test absolute value.
+testAbs = TestLabel "Absolute value tests" $ TestList
+    [ unaryTest abs P.abs neg2
+    , unaryTest abs P.abs neg1
+    , unaryTest abs P.abs zero
+    , unaryTest abs P.abs pos1
+    , unaryTest abs P.abs pos1
+    ]
+
+-- | Test signum.
+testSignum = TestLabel "Signum tests" $ TestList
+    [ unaryTest signum P.signum neg2
+    , unaryTest signum P.signum neg1
+    , unaryTest signum P.signum zero
+    , unaryTest signum P.signum pos1
+    , unaryTest signum P.signum pos1
     ]
 
 -- | Test addition.
@@ -105,9 +136,9 @@ testDivision = TestLabel "Division tests" $ TestList
 
 -- | Test exponentiation.
 testExponentiation = TestLabel "Exponentiation tests" $ TestList
-    [ binaryTest (^) (P.^) pos2 pos5
+    [ binaryTest (^) (P.^) pos2 pos3
     , binaryTest (^) (P.^) zero pos5
-    , binaryTest (^) (P.^) neg2 pos5
+    , binaryTest (^) (P.^) neg2 pos3
     , binaryTest (^) (P.^) pos5 zero
     , binaryTest (^) (P.^) zero zero
     , binaryTest (^) (P.^) neg5 zero
@@ -118,6 +149,8 @@ tests = TestList
     [ testAsIntegral
     , testIncrDecr
     , testNegate
+    , testAbs
+    , testSignum
     , testAddition
     , testSubtraction
     , testMultiplication
