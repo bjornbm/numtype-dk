@@ -11,7 +11,7 @@
 module Numeric.NumType.DK where
 
 import Data.Proxy
-import Prelude hiding ((+), (-), (*), (/), (^), negate, abs, signum)
+import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
 
@@ -127,6 +127,8 @@ type family (i::NumType) ^ (i'::NumType) :: NumType
 -- Term level operators
 -- --------------------
 
+pred   :: Proxy i -> Proxy (Pred   i); pred   _ = Proxy
+succ   :: Proxy i -> Proxy (Succ   i); succ   _ = Proxy
 negate :: Proxy i -> Proxy (Negate i); negate _ = Proxy
 abs    :: Proxy i -> Proxy (Abs    i); abs    _ = Proxy
 signum :: Proxy i -> Proxy (Signum i); signum _ = Proxy
