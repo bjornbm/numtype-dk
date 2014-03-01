@@ -11,10 +11,22 @@ import Data.Proxy
 import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
+-- {-
+-- Use custom @Typeable@ @Nat@s.
 import Numeric.NumType.DK.Nat (Nat (S, Z))
 import qualified Numeric.NumType.DK.Nat as N
---import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
---import qualified GHC.TypeLits as N
+
+type N1 = S Z  -- NumType.DK.Nats
+-- -}
+
+{-
+-- Use @Nat@s from @GHC.TypeLits@ (not @Typeable@ as of GHC 7.8.1).
+import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
+import qualified GHC.TypeLits as N
+
+type Z  = 0  -- GHC.TypeLits
+type N1 = 1  -- GHC.TypeLits
+-- -}
 
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
@@ -25,17 +37,14 @@ infixl 6  +, -
 -- Natural numbers
 -- ===============
 
--- Update these three lines when moving to TypeNats.
-type N1 = S Z
 type family NatPred (n::Nat) :: Nat where NatPred n = n N.- N1
 type family NatSucc (n::Nat) :: Nat where NatSucc n = n N.+ N1
---type family NPred (n::Nat) :: Nat where NPred n = n N.- 1
---type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ 1
+
 
 -- Integers
 -- ========
 
-data NumType = Pos1Plus Nat  -- 1, 2, 3, ...
+data NumType = Pos1Plus  Nat  -- 1, 2, 3, ...
              | Zero      -- 0
              | Neg1Minus Nat  -- -1, -2, -3, ...
 
@@ -44,10 +53,8 @@ type Neg5 = Pred Neg4
 type Neg4 = Pred Neg3
 type Neg3 = Pred Neg2
 type Neg2 = Pred Neg1
-type Neg1 = Neg1Minus Z  -- Used in this module.
-type Pos1 = Pos1Plus  Z  -- Used in this module.
---type Neg1 = Neg1Minus 0  -- Used in this module.
---type Pos1 = Pos1Plus  0  -- Used in this module.
+type Neg1 = Neg1Minus Z
+type Pos1 = Pos1Plus  Z
 type Pos2 = Succ Pos1
 type Pos3 = Succ Pos2
 type Pos4 = Succ Pos3
@@ -95,7 +102,7 @@ type family (i::NumType) + (i'::NumType) :: NumType where
   Zero + i = i
   i + Zero = i
   i + Pos1Plus n = Succ i + Pred (Pos1Plus n)
-  i + i'    = Pred i + Succ i'  -- i + Neg n
+  i + i'         = Pred i + Succ i'  -- i + Neg n
 
 -- | NumType subtraction.
 type family (i::NumType) - (i'::NumType) :: NumType where
