@@ -60,6 +60,15 @@ type Pos3 = Succ Pos2
 type Pos4 = Succ Pos3
 type Pos5 = Succ Pos4
 
+-- Type families for convenient use of any @Nat@ with the pattern of the
+-- above type signatures. These are effectively used as type synonyms.
+type family Neg (n::Nat) :: NumType where
+  Neg Z = Zero
+  Neg n = Neg1Minus (NatPred n)
+type family Pos (n::Nat) :: NumType where
+  Pos Z = Zero
+  Pos n = Pos1Plus (NatPred n)
+
 
 -- Unary operations
 -- ----------------
