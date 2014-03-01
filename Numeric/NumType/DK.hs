@@ -165,5 +165,5 @@ instance KnownNumType Zero where toNum _ = 0
 instance KnownNumType (Pred (Pos n)) => KnownNumType (Pos n)
   where toNum = (1 Prelude.+) . toNum . pred
 
-instance KnownNumType (Negate (Neg n)) => KnownNumType (Neg n)
+instance KnownNumType (Pos n) => KnownNumType (Neg n)
   where toNum = Prelude.negate . toNum . negate
