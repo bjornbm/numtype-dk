@@ -24,7 +24,6 @@ infixl 6  +, -
 -- Natural numbers
 -- ===============
 
---data Nat0 = Z | S0 Nat0  -- Natural numbers starting at 0.
 data Nat1 = O | S Nat1  -- Natural numbers starting at 1.
 
 
@@ -52,26 +51,26 @@ type Pos5 = Succ Pos4
 -- ----------------
 
 type family Pred (i::NumType) :: NumType where
-  Pred Zero         = Neg1
-  Pred Pos1         = Zero
+  Pred Zero        = Neg1
+  Pred Pos1        = Zero
   Pred (Pos (S n)) = Pos n
-  Pred (Neg n)      = Neg (S n)
+  Pred (Neg n)     = Neg (S n)
 
 type family Succ (i::NumType) :: NumType where
   Succ (Neg (S n)) = Neg n
-  Succ Neg1         = Zero
-  Succ Zero         = Pos1
-  Succ (Pos n)      = Pos (S n)
+  Succ Neg1        = Zero
+  Succ Zero        = Pos1
+  Succ (Pos n)     = Pos (S n)
 
 -- | NumType negation.
 type family Negate (i::NumType) :: NumType where
   Negate Zero = Zero
-  Negate (Pos n) = Pred (Negate (Pred (Pos n)))
-  Negate (Neg n) = Succ (Negate (Succ (Neg n)))
+  Negate (Pos n) = Neg n
+  Negate (Neg n) = Pos n
 
 -- | Absolute value.
 type family Abs (i::NumType) :: NumType where
-  Abs (Neg n) = Negate (Neg n)
+  Abs (Neg n) = Pos n
   Abs i = i  -- Abs (Pos n) or Abs Zero
 
 -- | Signum.
@@ -100,8 +99,8 @@ type family (i::NumType) * (i'::NumType) :: NumType
   where
     Zero * i = Zero
     i * Zero = Zero
-    i * Pos n = i + i * Pred (Pos n)
-    i * i' = Negate (i * Negate i')  -- i * Neg n
+    i * Neg n = Negate (i * Pos n)
+    i * i' = i + i * Pred i'  -- i * Pos n
     --i * Neg1 = Negate i
     --i * Neg n = Negate (i * Negate (Neg n))
 
@@ -111,8 +110,8 @@ type family (i::NumType) / (i'::NumType) :: NumType
     -- `Zero / n = Zero` would allow division by zero.
     Zero / Pos n = Zero
     Zero / Neg n = Zero
-    i / Neg n = Negate (i / Negate (Neg n))
-    Neg n / i = Negate (Negate (Neg n) / i)
+    i / Neg n = Negate (i / Pos n)
+    Neg n / i = Negate (Pos n / i)
     i / i' = (i - i') / i' + Pos1  -- Pos n / Pos n'
 
 -- | NumType exponentiation.
