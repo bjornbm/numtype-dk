@@ -27,8 +27,8 @@ infixl 6  +, -
 
 -- Update these three lines when moving to TypeNats.
 type N1 = S Z
-type family NPred (n::Nat) :: Nat where NPred n = n N.- N1
-type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ N1
+type family NatPred (n::Nat) :: Nat where NatPred n = n N.- N1
+type family NatSucc (n::Nat) :: Nat where NatSucc n = n N.+ N1
 --type family NPred (n::Nat) :: Nat where NPred n = n N.- 1
 --type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ 1
 
@@ -60,14 +60,14 @@ type Pos5 = Succ Pos4
 type family Pred (i::NumType) :: NumType where
   Pred Zero = Neg1
   Pred Pos1 = Zero
-  Pred (Pos1Plus  n) = Pos1Plus  (NPred n)
-  Pred (Neg1Minus n) = Neg1Minus (NSucc n)
+  Pred (Pos1Plus  n) = Pos1Plus  (NatPred n)
+  Pred (Neg1Minus n) = Neg1Minus (NatSucc n)
 
 type family Succ (i::NumType) :: NumType where
   Succ Zero = Pos1
   Succ Neg1 = Zero
-  Succ (Neg1Minus n) = Neg1Minus (NPred n)
-  Succ (Pos1Plus  n) = Pos1Plus  (NSucc n)
+  Succ (Neg1Minus n) = Neg1Minus (NatPred n)
+  Succ (Pos1Plus  n) = Pos1Plus  (NatSucc n)
 
 -- | NumType negation.
 type family Negate (i::NumType) :: NumType where
