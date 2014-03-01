@@ -11,6 +11,8 @@ import Data.Proxy
 import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
+import Numeric.NumType.DK.Nat (Nat (S, Z))
+import qualified Numeric.NumType.DK.Nat as N
 
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
@@ -21,23 +23,25 @@ infixl 6  +, -
 -- Natural numbers
 -- ===============
 
-data Nat1 = O | S Nat1  -- Natural numbers starting at 1.
-
+-- Update these three lines when moving to TypeNats.
+type N1 = S Z
+type family NPred (n::Nat) :: Nat where NPred n = n N.- N1
+type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ N1
 
 -- Integers
 -- ========
 
-data NumType = Pos Nat1  -- 1, 2, 3, ...
+data NumType = Pos1Plus Nat  -- 1, 2, 3, ...
              | Zero      -- 0
-             | Neg Nat1  -- -1, -2, -3, ...
+             | Neg1Minus Nat  -- -1, -2, -3, ...
 
 -- Type synonyms for convenience.
 type Neg5 = Pred Neg4
 type Neg4 = Pred Neg3
 type Neg3 = Pred Neg2
 type Neg2 = Pred Neg1
-type Neg1 = Neg O  -- Used in this module.
-type Pos1 = Pos O  -- Used in this module.
+type Neg1 = Neg1Minus Z  -- Used in this module.
+type Pos1 = Pos1Plus  Z  -- Used in this module.
 type Pos2 = Succ Pos1
 type Pos3 = Succ Pos2
 type Pos4 = Succ Pos3
@@ -48,33 +52,33 @@ type Pos5 = Succ Pos4
 -- ----------------
 
 type family Pred (i::NumType) :: NumType where
-  Pred Zero        = Neg1
-  Pred Pos1        = Zero
-  Pred (Pos (S n)) = Pos n
-  Pred (Neg n)     = Neg (S n)
+  Pred Zero = Neg1
+  Pred Pos1 = Zero
+  Pred (Pos1Plus  n) = Pos1Plus  (NPred n)
+  Pred (Neg1Minus n) = Neg1Minus (NSucc n)
 
 type family Succ (i::NumType) :: NumType where
-  Succ (Neg (S n)) = Neg n
-  Succ Neg1        = Zero
-  Succ Zero        = Pos1
-  Succ (Pos n)     = Pos (S n)
+  Succ Zero = Pos1
+  Succ Neg1 = Zero
+  Succ (Neg1Minus n) = Neg1Minus (NPred n)
+  Succ (Pos1Plus  n) = Pos1Plus  (NSucc n)
 
 -- | NumType negation.
 type family Negate (i::NumType) :: NumType where
   Negate Zero = Zero
-  Negate (Pos n) = Neg n
-  Negate (Neg n) = Pos n
+  Negate (Pos1Plus  n) = Neg1Minus n
+  Negate (Neg1Minus n) = Pos1Plus  n
 
 -- | Absolute value.
 type family Abs (i::NumType) :: NumType where
-  Abs (Neg n) = Pos n
+  Abs (Neg1Minus n) = Pos1Plus n
   Abs i = i  -- Abs (Pos n) or Abs Zero
 
 -- | Signum.
 type family Signum (i::NumType) :: NumType where
-  Signum (Neg n) = Neg1
-  Signum Zero = Zero
-  Signum i = Pos1
+  Signum (Neg1Minus n) = Neg1
+  Signum Zero          = Zero
+  Signum i             = Pos1  -- Pos1Plus n
 
 
 -- Binary operations
@@ -84,7 +88,7 @@ type family Signum (i::NumType) :: NumType where
 type family (i::NumType) + (i'::NumType) :: NumType where
   Zero + i = i
   i + Zero = i
-  i + Pos n = Succ i + Pred (Pos n)
+  i + Pos1Plus n = Succ i + Pred (Pos1Plus n)
   i + i'    = Pred i + Succ i'  -- i + Neg n
 
 -- | NumType subtraction.
@@ -96,7 +100,7 @@ type family (i::NumType) * (i'::NumType) :: NumType
   where
     Zero * i = Zero
     i * Zero = Zero
-    i * Neg n = Negate (i * Pos n)
+    i * Neg1Minus n = Negate (i * Pos1Plus n)
     i * i' = i + i * Pred i'  -- i * Pos n
     --i * Neg1 = Negate i
     --i * Neg n = Negate (i * Negate (Neg n))
@@ -105,10 +109,10 @@ type family (i::NumType) * (i'::NumType) :: NumType
 type family (i::NumType) / (i'::NumType) :: NumType
   where
     -- `Zero / n = Zero` would allow division by zero.
-    Zero / Pos n = Zero
-    Zero / Neg n = Zero
-    i / Neg n = Negate (i / Pos n)
-    Neg n / i = Negate (Pos n / i)
+    Zero / Pos1Plus  n = Zero
+    Zero / Neg1Minus n = Zero
+    i / Neg1Minus n = Negate (i / Pos1Plus n)
+    Neg1Minus n / i = Negate (Pos1Plus n / i)
     i / i' = (i - i') / i' + Pos1  -- Pos n / Pos n'
 
 -- | NumType exponentiation.
@@ -116,7 +120,7 @@ type family (i::NumType) ^ (i'::NumType) :: NumType
   where
     i ^ Zero = Pos1
     --Zero ^ Pos n = Zero  -- Redundant.
-    i ^ Pos n = i * i ^ Pred (Pos n)
+    i ^ Pos1Plus n = i * i ^ Pred (Pos1Plus n)
 
 
 -- Term level
@@ -162,8 +166,8 @@ class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
 
 instance KnownNumType Zero where toNum _ = 0
 
-instance KnownNumType (Pred (Pos n)) => KnownNumType (Pos n)
+instance KnownNumType (Pred (Pos1Plus n)) => KnownNumType (Pos1Plus n)
   where toNum = (1 Prelude.+) . toNum . pred
 
-instance KnownNumType (Pos n) => KnownNumType (Neg n)
+instance KnownNumType (Pos1Plus n) => KnownNumType (Neg1Minus n)
   where toNum = Prelude.negate . toNum . negate
