@@ -13,6 +13,8 @@ import qualified Prelude
 
 import Numeric.NumType.DK.Nat (Nat (S, Z))
 import qualified Numeric.NumType.DK.Nat as N
+--import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
+--import qualified GHC.TypeLits as N
 
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
@@ -27,6 +29,8 @@ infixl 6  +, -
 type N1 = S Z
 type family NPred (n::Nat) :: Nat where NPred n = n N.- N1
 type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ N1
+--type family NPred (n::Nat) :: Nat where NPred n = n N.- 1
+--type family NSucc (n::Nat) :: Nat where NSucc n = n N.+ 1
 
 -- Integers
 -- ========
@@ -42,6 +46,8 @@ type Neg3 = Pred Neg2
 type Neg2 = Pred Neg1
 type Neg1 = Neg1Minus Z  -- Used in this module.
 type Pos1 = Pos1Plus  Z  -- Used in this module.
+--type Neg1 = Neg1Minus 0  -- Used in this module.
+--type Pos1 = Pos1Plus  0  -- Used in this module.
 type Pos2 = Succ Pos1
 type Pos3 = Succ Pos2
 type Pos4 = Succ Pos3
