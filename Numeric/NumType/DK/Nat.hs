@@ -7,7 +7,6 @@
 
 module Numeric.NumType.DK.Nat where
 
-
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
 infixl 7  *
@@ -18,7 +17,7 @@ data Nat = Z | S Nat  -- Natural numbers starting at 0.
 
 -- | Nat addition.
 type family (n::Nat) + (n'::Nat) :: Nat where
-  Z + n = n
+  -- Z + n = n  -- Redundant.
   n + Z = n
   n + S n' = S n + n'
 
@@ -41,7 +40,7 @@ type family (n::Nat) ^ (n'::Nat) :: Nat
     n ^ Z = S Z
     n ^ S n' = n * n ^ n'
 
-
+{-
 class KnownNat (n::Nat) where natVal :: proxy n -> Integer
 instance KnownNat Z where natVal _ = 0
 instance KnownNat n => KnownNat (S n) where
@@ -49,3 +48,4 @@ instance KnownNat n => KnownNat (S n) where
     where
       pred :: proxy (S n) -> proxy n
       pred = undefined
+-}
