@@ -110,32 +110,36 @@ type Neg5 = N 5
 -- Enough work at the kind/type level. Bringing it down to type/value level ...
 
 
+-- | Proxy for 'NumType's.
+data NT (n::NumType) deriving Typeable
+--data NT :: NumType -> *
+
 -- Shorthands for convenience.
-type NZ   = Proxy  Z
-type NP n = Proxy (P n)
-type NN n = Proxy (N n)
+type NZ   = NT  Z
+type NP n = NT (P n)
+type NN n = NT (N n)
 
 
 -- Value level names.
-zero :: NZ  ; zero = Proxy
-pos1 :: NP 1; pos1 = Proxy
-pos2 :: NP 2; pos2 = Proxy
-pos3 :: NP 3; pos3 = Proxy
-pos4 :: NP 4; pos4 = Proxy
-pos5 :: NP 5; pos5 = Proxy
-neg1 :: NN 1; neg1 = Proxy
-neg2 :: NN 2; neg2 = Proxy
-neg3 :: NN 3; neg3 = Proxy
-neg4 :: NN 4; neg4 = Proxy
-neg5 :: NN 5; neg5 = Proxy
+zero :: NZ  ; zero = undefined
+pos1 :: NP 1; pos1 = undefined
+pos2 :: NP 2; pos2 = undefined
+pos3 :: NP 3; pos3 = undefined
+pos4 :: NP 4; pos4 = undefined
+pos5 :: NP 5; pos5 = undefined
+neg1 :: NN 1; neg1 = undefined
+neg2 :: NN 2; neg2 = undefined
+neg3 :: NN 3; neg3 = undefined
+neg4 :: NN 4; neg4 = undefined
+neg5 :: NN 5; neg5 = undefined
 
 -- Value level operators.
-(+) :: Proxy i -> Proxy i' -> Proxy (i + i'); (+) = undefined
-(-) :: Proxy i -> Proxy i' -> Proxy (i - i'); (-) = undefined
-(*) :: Proxy i -> Proxy i' -> Proxy (i * i'); (*) = undefined
-(/) :: Proxy i -> Proxy i' -> Proxy (i / i'); (/) = undefined
-(^) :: Proxy i -> Proxy i' -> Proxy (i ^ i'); (^) = undefined
-negate :: Proxy i -> Proxy (Negate i); negate = undefined
+(+) :: NT i -> NT i' -> NT (i + i'); (+) = undefined
+(-) :: NT i -> NT i' -> NT (i - i'); (-) = undefined
+(*) :: NT i -> NT i' -> NT (i * i'); (*) = undefined
+(/) :: NT i -> NT i' -> NT (i / i'); (/) = undefined
+(^) :: NT i -> NT i' -> NT (i ^ i'); (^) = undefined
+negate :: NT i -> NT (Negate i); negate = undefined
 
 
 -- | Conversion to @Integer@.
@@ -153,6 +157,10 @@ instance KnownNat n => ToInteger (NN n) where
 -- | Conversion to @Num@ instance.
 toNum :: (ToInteger nt, Num a) => nt -> a
 toNum = fromInteger . toInteger
+
+
+-- Show instance.
+instance ToInteger (NT i) => Show (NT i) where show = (++"#") . show . toInteger
 
 
 {-
