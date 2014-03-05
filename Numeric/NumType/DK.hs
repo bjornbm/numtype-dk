@@ -44,63 +44,132 @@ type family NatSucc (n::Nat) :: Nat where NatSucc n = n N.+ N1
 -- Integers
 -- ========
 
-data NumType = Pos1Plus  Nat  -- 1, 2, 3, ...
-             | Zero      -- 0
-             | Neg1Minus Nat  -- -1, -2, -3, ...
-
--- Type synonyms for convenience.
-type Neg5 = Pred Neg4
-type Neg4 = Pred Neg3
-type Neg3 = Pred Neg2
-type Neg2 = Pred Neg1
-type Neg1 = Neg1Minus Z
-type Pos1 = Pos1Plus  Z
-type Pos2 = Succ Pos1
-type Pos3 = Succ Pos2
-type Pos4 = Succ Pos3
-type Pos5 = Succ Pos4
-
--- Type families for convenient use of any @Nat@ with the pattern of the
--- above type signatures. These are effectively used as type synonyms.
-type family Neg (n::Nat) :: NumType where
-  Neg Z = Zero
-  Neg n = Neg1Minus (NatPred n)
-type family Pos (n::Nat) :: NumType where
-  Pos Z = Zero
-  Pos n = Pos1Plus (NatPred n)
+data NumType = Neg10Minus Nat  -- 10, 11, 12, 13, ...
+             | Neg9
+             | Neg8
+             | Neg7
+             | Neg6
+             | Neg5
+             | Neg4
+             | Neg3
+             | Neg2
+             | Neg1
+             | Zero -- 0
+             | Pos1
+             | Pos2
+             | Pos3
+             | Pos4
+             | Pos5
+             | Pos6
+             | Pos7
+             | Pos8
+             | Pos9
+             | Pos10Plus Nat  -- -10, -11, -12, -13, ...
 
 
 -- Unary operations
 -- ----------------
 
 type family Pred (i::NumType) :: NumType where
+  Pred (Neg10Minus n) = Neg10Minus (NatSucc n)
+  Pred Neg9 = Neg10Minus Z
+  Pred Neg8 = Neg9
+  Pred Neg7 = Neg8
+  Pred Neg6 = Neg7
+  Pred Neg5 = Neg6
+  Pred Neg4 = Neg5
+  Pred Neg3 = Neg4
+  Pred Neg2 = Neg3
+  Pred Neg1 = Neg2
   Pred Zero = Neg1
   Pred Pos1 = Zero
-  Pred (Pos1Plus  n) = Pos1Plus  (NatPred n)
-  Pred (Neg1Minus n) = Neg1Minus (NatSucc n)
+  Pred Pos2 = Pos1
+  Pred Pos3 = Pos2
+  Pred Pos4 = Pos3
+  Pred Pos5 = Pos4
+  Pred Pos6 = Pos5
+  Pred Pos7 = Pos6
+  Pred Pos8 = Pos7
+  Pred Pos9 = Pos8
+  Pred (Pos10Plus Z) = Pos9
+  Pred (Pos10Plus n) = Pos10Plus (NatPred n)
 
 type family Succ (i::NumType) :: NumType where
-  Succ Zero = Pos1
+  Succ (Neg10Minus Z) = Neg9
+  Succ (Neg10Minus n) = Neg10Minus (NatPred n)
+  Succ Neg9 = Neg8
+  Succ Neg8 = Neg7
+  Succ Neg7 = Neg6
+  Succ Neg6 = Neg5
+  Succ Neg5 = Neg4
+  Succ Neg4 = Neg3
+  Succ Neg3 = Neg2
+  Succ Neg2 = Neg1
   Succ Neg1 = Zero
-  Succ (Neg1Minus n) = Neg1Minus (NatPred n)
-  Succ (Pos1Plus  n) = Pos1Plus  (NatSucc n)
+  Succ Zero = Pos1
+  Succ Pos1 = Pos2
+  Succ Pos2 = Pos3
+  Succ Pos3 = Pos4
+  Succ Pos4 = Pos5
+  Succ Pos5 = Pos6
+  Succ Pos6 = Pos7
+  Succ Pos7 = Pos8
+  Succ Pos8 = Pos9
+  Succ Pos9 = Pos10Plus Z
+  Succ (Pos10Plus n) = Pos10Plus (NatSucc n)
 
 -- | NumType negation.
 type family Negate (i::NumType) :: NumType where
+  Negate (Neg10Minus n) = Pos10Plus  n
+  Negate Neg9 = Pos9
+  Negate Neg8 = Pos8
+  Negate Neg7 = Pos7
+  Negate Neg6 = Pos6
+  Negate Neg5 = Pos5
+  Negate Neg4 = Pos4
+  Negate Neg3 = Pos3
+  Negate Neg2 = Pos2
+  Negate Neg1 = Pos1
   Negate Zero = Zero
-  Negate (Pos1Plus  n) = Neg1Minus n
-  Negate (Neg1Minus n) = Pos1Plus  n
+  Negate Pos1 = Neg1
+  Negate Pos2 = Neg2
+  Negate Pos3 = Neg3
+  Negate Pos4 = Neg4
+  Negate Pos5 = Neg5
+  Negate Pos6 = Neg6
+  Negate Pos7 = Neg7
+  Negate Pos8 = Neg8
+  Negate Pos9 = Neg9
+  Negate (Pos10Plus  n) = Neg10Minus n
 
 -- | Absolute value.
 type family Abs (i::NumType) :: NumType where
-  Abs (Neg1Minus n) = Pos1Plus n
-  Abs i = i  -- Abs (Pos n) or Abs Zero
+  Abs (Neg10Minus n) = Pos10Plus  n
+  Abs Neg9 = Pos9
+  Abs Neg8 = Pos8
+  Abs Neg7 = Pos7
+  Abs Neg6 = Pos6
+  Abs Neg5 = Pos5
+  Abs Neg4 = Pos4
+  Abs Neg3 = Pos3
+  Abs Neg2 = Pos2
+  Abs Neg1 = Pos1
+  Abs i = i
 
 -- | Signum.
 type family Signum (i::NumType) :: NumType where
-  Signum (Neg1Minus n) = Neg1
-  Signum Zero          = Zero
-  Signum i             = Pos1  -- Pos1Plus n
+  Signum (Neg10Minus n) = Neg1
+  Signum Neg9 = Neg1
+  Signum Neg8 = Neg1
+  Signum Neg7 = Neg1
+  Signum Neg6 = Neg1
+  Signum Neg5 = Neg1
+  Signum Neg4 = Neg1
+  Signum Neg3 = Neg1
+  Signum Neg2 = Neg1
+  Signum Neg1 = Neg1
+  Signum Zero = Zero
+  Signum i = Pos1
 
 
 -- Binary operations
@@ -109,9 +178,18 @@ type family Signum (i::NumType) :: NumType where
 -- | NumType addition.
 type family (i::NumType) + (i'::NumType) :: NumType where
   Zero + i = i
+  i + Neg10Minus n = Pred i + Succ (Neg10Minus n)
+  i + Neg9 = Pred i + Neg8
+  i + Neg8 = Pred i + Neg7
+  i + Neg7 = Pred i + Neg6
+  i + Neg6 = Pred i + Neg5
+  i + Neg5 = Pred i + Neg4
+  i + Neg4 = Pred i + Neg3
+  i + Neg3 = Pred i + Neg2
+  i + Neg2 = Pred i + Neg1
+  i + Neg1 = Pred i
   i + Zero = i
-  i + Pos1Plus n = Succ i + Pred (Pos1Plus n)
-  i + i'         = Pred i + Succ i'  -- i + Neg n
+  i + i' = Succ i + Pred i'  -- i + Pos
 
 -- | NumType subtraction.
 type family (i::NumType) - (i'::NumType) :: NumType where
@@ -122,27 +200,129 @@ type family (i::NumType) * (i'::NumType) :: NumType
   where
     Zero * i = Zero
     i * Zero = Zero
-    i * Neg1Minus n = Negate (i * Pos1Plus n)
-    i * i' = i + i * Pred i'  -- i * Pos n
-    --i * Neg1 = Negate i
-    --i * Neg n = Negate (i * Negate (Neg n))
-
--- | NumType division.
-type family (i::NumType) / (i'::NumType) :: NumType
-  where
-    -- `Zero / n = Zero` would allow division by zero.
-    Zero / Pos1Plus  n = Zero
-    Zero / Neg1Minus n = Zero
-    i / Neg1Minus n = Negate (i / Pos1Plus n)
-    Neg1Minus n / i = Negate (Pos1Plus n / i)
-    i / i' = (i - i') / i' + Pos1  -- Pos n / Pos n'
+    i * Pos1 = i
+    i * Pos2 = i + i
+    i * Pos3 = i + i + i
+    i * Pos4 = i + i + i + i
+    i * Pos5 = i + i + i + i + i
+    i * Pos6 = i + i + i + i + i + i
+    i * Pos7 = i + i + i + i + i + i + i
+    i * Pos8 = i + i + i + i + i + i + i + i
+    i * Pos9 = i + i + i + i + i + i + i + i + i
+    i * Pos10Plus n = i + i * Pred (Pos10Plus n)
+    i * i' = Negate (i * Negate i')
 
 -- | NumType exponentiation.
 type family (i::NumType) ^ (i'::NumType) :: NumType
   where
     i ^ Zero = Pos1
-    --Zero ^ Pos n = Zero  -- Redundant.
-    i ^ Pos1Plus n = i * i ^ Pred (Pos1Plus n)
+    i ^ Pos1 = i
+    i ^ Pos2 = i * i
+    i ^ Pos3 = i * i * i
+    i ^ Pos4 = i * i * i * i
+    i ^ Pos5 = i * i * i * i * i
+    i ^ Pos6 = i * i * i * i * i * i
+    i ^ Pos7 = i * i * i * i * i * i * i
+    i ^ Pos8 = i * i * i * i * i * i * i * i
+    i ^ Pos9 = i * i * i * i * i * i * i * i * i
+    i ^ Pos10Plus n = i * i ^ Pred (Pos10Plus n)
+
+-- | NumType division.
+type family (i::NumType) / (i'::NumType) :: NumType
+  where
+ 
+    i / Pos1 = i
+    i / Neg1 = Negate i
+    -- @Zero / n = Zero@ would allow division by zero.
+    -- @i / i = Pos1@ would allow division by zero.
+    Zero / (Neg10Minus n) = Zero
+    Zero / Neg9 = Zero
+    Zero / Neg8 = Zero
+    Zero / Neg7 = Zero
+    Zero / Neg6 = Zero
+    Zero / Neg5 = Zero
+    Zero / Neg4 = Zero
+    Zero / Neg3 = Zero
+    Zero / Neg2 = Zero
+    Zero / Pos2 = Zero
+    Zero / Pos3 = Zero
+    Zero / Pos4 = Zero
+    Zero / Pos5 = Zero
+    Zero / Pos6 = Zero
+    Zero / Pos7 = Zero
+    Zero / Pos8 = Zero
+    Zero / Pos9 = Zero
+    Zero / (Pos10Plus n) = Zero
+
+    Neg2 / Neg2 = Pos1
+    Neg3 / Neg3 = Pos1
+    Neg4 / Neg4 = Pos1
+    Neg5 / Neg5 = Pos1
+    Neg6 / Neg6 = Pos1
+    Neg7 / Neg7 = Pos1
+    Neg8 / Neg8 = Pos1
+    Neg9 / Neg9 = Pos1
+    Neg10Minus n / Neg10Minus n = Pos1
+
+    Neg2 / Pos2 = Neg1
+    Neg3 / Pos3 = Neg1
+    Neg4 / Pos4 = Neg1
+    Neg5 / Pos5 = Neg1
+    Neg6 / Pos6 = Neg1
+    Neg7 / Pos7 = Neg1
+    Neg8 / Pos8 = Neg1
+    Neg9 / Pos9 = Neg1
+    Neg10Minus n / Pos10Plus n = Neg1
+
+    Pos2 / Neg2 = Neg1
+    Pos3 / Neg3 = Neg1
+    Pos4 / Neg4 = Neg1
+    Pos5 / Neg5 = Neg1
+    Pos6 / Neg6 = Neg1
+    Pos7 / Neg7 = Neg1
+    Pos8 / Neg8 = Neg1
+    Pos9 / Neg9 = Neg1
+    Pos10Plus n / Neg10Minus n = Neg1
+
+    Pos2 / Pos2 = Pos1
+    Pos3 / Pos3 = Pos1
+    Pos4 / Pos4 = Pos1
+    Pos5 / Pos5 = Pos1
+    Pos6 / Pos6 = Pos1
+    Pos7 / Pos7 = Pos1
+    Pos8 / Pos8 = Pos1
+    Pos9 / Pos9 = Pos1
+    Pos10Plus n / Pos10Plus n = Pos1
+
+    Neg4 / Neg2 = Pos2
+    Neg6 / Neg2 = Pos3
+    Neg8 / Neg2 = Pos4
+    Neg6 / Neg3 = Pos2
+    Neg9 / Neg3 = Pos3
+    Neg8 / Neg4 = Pos2
+    Neg10Minus n / i = (Neg10Minus n + Abs i) / i - Signum i
+
+    Neg4 / Pos2 = Neg2
+    Neg6 / Pos2 = Neg3
+    Neg8 / Pos2 = Neg4
+    Neg6 / Pos3 = Neg2
+    Neg9 / Pos3 = Neg3
+    Neg8 / Pos4 = Neg2
+
+    Pos4 / Neg2 = Neg2
+    Pos6 / Neg2 = Neg3
+    Pos8 / Neg2 = Neg4
+    Pos6 / Neg3 = Neg2
+    Pos9 / Neg3 = Neg3
+    Pos8 / Neg4 = Neg2
+
+    Pos4 / Pos2 = Pos2
+    Pos6 / Pos2 = Pos3
+    Pos8 / Pos2 = Pos4
+    Pos6 / Pos3 = Pos2
+    Pos9 / Pos3 = Pos3
+    Pos8 / Pos4 = Pos2
+    Pos10Plus n / i = (Pos10Plus n - Abs i) / i + Signum i
 
 
 -- Term level
@@ -167,6 +347,10 @@ signum :: Proxy i -> Proxy (Signum i); signum _ = Proxy
 -- Term level TypeNats for convenience
 -- -----------------------------------
 
+neg9 = Proxy :: Proxy Neg9
+neg8 = Proxy :: Proxy Neg8
+neg7 = Proxy :: Proxy Neg7
+neg6 = Proxy :: Proxy Neg6
 neg5 = Proxy :: Proxy Neg5
 neg4 = Proxy :: Proxy Neg4
 neg3 = Proxy :: Proxy Neg3
@@ -178,6 +362,10 @@ pos2 = Proxy :: Proxy Pos2
 pos3 = Proxy :: Proxy Pos3
 pos4 = Proxy :: Proxy Pos4
 pos5 = Proxy :: Proxy Pos5
+pos6 = Proxy :: Proxy Pos6
+pos7 = Proxy :: Proxy Pos7
+pos8 = Proxy :: Proxy Pos8
+pos9 = Proxy :: Proxy Pos9
 
 
 -- Reification
@@ -186,10 +374,28 @@ pos5 = Proxy :: Proxy Pos5
 -- | Conversion to a @Num@.
 class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
 
+instance KnownNumType (Succ (Neg10Minus n)) => KnownNumType (Neg10Minus n)
+  where toNum = (Prelude.- 1) . toNum . succ
+
+instance KnownNumType Neg9 where toNum _ = -9
+instance KnownNumType Neg8 where toNum _ = -8
+instance KnownNumType Neg7 where toNum _ = -7
+instance KnownNumType Neg6 where toNum _ = -6
+instance KnownNumType Neg5 where toNum _ = -5
+instance KnownNumType Neg4 where toNum _ = -4
+instance KnownNumType Neg3 where toNum _ = -3
+instance KnownNumType Neg2 where toNum _ = -2
+instance KnownNumType Neg1 where toNum _ = -1
 instance KnownNumType Zero where toNum _ = 0
+instance KnownNumType Pos1 where toNum _ = 1
+instance KnownNumType Pos2 where toNum _ = 2
+instance KnownNumType Pos3 where toNum _ = 3
+instance KnownNumType Pos4 where toNum _ = 4
+instance KnownNumType Pos5 where toNum _ = 5
+instance KnownNumType Pos6 where toNum _ = 6
+instance KnownNumType Pos7 where toNum _ = 7
+instance KnownNumType Pos8 where toNum _ = 8
+instance KnownNumType Pos9 where toNum _ = 9
 
-instance KnownNumType (Pred (Pos1Plus n)) => KnownNumType (Pos1Plus n)
-  where toNum = (1 Prelude.+) . toNum . pred
-
-instance KnownNumType (Pos1Plus n) => KnownNumType (Neg1Minus n)
-  where toNum = Prelude.negate . toNum . negate
+instance KnownNumType (Pred (Pos10Plus n)) => KnownNumType (Pos10Plus n)
+  where toNum = (Prelude.+ 1) . toNum . pred
