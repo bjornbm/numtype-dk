@@ -60,7 +60,7 @@ testIncrDecr = TestLabel "Increment and decrement tests" $ TestList
     , t neg1
     , t zero
     , t pos1
-    , t pos1
+    , t pos2
     ] where
         t x = TestList [ unaryTest' (+ pos1) (P.+ 1) x
                        , unaryTest' (+ neg1) (P.- 1) x
@@ -76,7 +76,7 @@ testNegate = TestLabel "Negation tests" $ TestList
     , unaryTest negate P.negate neg1
     , unaryTest negate P.negate zero
     , unaryTest negate P.negate pos1
-    , unaryTest negate P.negate pos1
+    , unaryTest negate P.negate pos2
     ]
 
 -- | Test absolute value.
@@ -85,7 +85,7 @@ testAbs = TestLabel "Absolute value tests" $ TestList
     , unaryTest abs P.abs neg1
     , unaryTest abs P.abs zero
     , unaryTest abs P.abs pos1
-    , unaryTest abs P.abs pos1
+    , unaryTest abs P.abs pos2
     ]
 
 -- | Test signum.
@@ -94,7 +94,7 @@ testSignum = TestLabel "Signum tests" $ TestList
     , unaryTest signum P.signum neg1
     , unaryTest signum P.signum zero
     , unaryTest signum P.signum pos1
-    , unaryTest signum P.signum pos1
+    , unaryTest signum P.signum pos2
     ]
 
 -- | Test addition.
