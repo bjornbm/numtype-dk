@@ -205,6 +205,24 @@ testSignum = TestLabel "Signum tests" $ TestList
     , unaryTest signum P.signum pos12
     ]
 
+-- | Test absolute value.
+testAbs = TestLabel "Absolute value tests" $ TestList
+    [ unaryTest abs P.abs neg2
+    , unaryTest abs P.abs neg1
+    , unaryTest abs P.abs zero
+    , unaryTest abs P.abs pos1
+    , unaryTest abs P.abs pos1
+    ]
+
+-- | Test signum.
+testSignum = TestLabel "Signum tests" $ TestList
+    [ unaryTest signum P.signum neg2
+    , unaryTest signum P.signum neg1
+    , unaryTest signum P.signum zero
+    , unaryTest signum P.signum pos1
+    , unaryTest signum P.signum pos1
+    ]
+
 -- | Test addition.
 testAddition = TestLabel "Addition tests" $ TestList
     [ binaryTest (+) (P.+) pos2 pos5

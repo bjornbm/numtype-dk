@@ -13,7 +13,7 @@ import qualified Prelude
 
 -- {-
 -- Use custom @Typeable@ @Nat@s.
-import Numeric.NumType.DK.Nat (Nat (S, Z))
+import Numeric.NumType.DK.Nat (Nat (S, Z), KnownNat(..))
 import qualified Numeric.NumType.DK.Nat as N
 
 type N1 = S Z  -- NumType.DK.Nats

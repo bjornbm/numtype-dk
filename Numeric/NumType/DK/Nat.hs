@@ -40,12 +40,12 @@ type family (n::Nat) ^ (n'::Nat) :: Nat
     n ^ Z = S Z
     n ^ S n' = n * n ^ n'
 
-{-
+
 class KnownNat (n::Nat) where natVal :: proxy n -> Integer
+
 instance KnownNat Z where natVal _ = 0
 instance KnownNat n => KnownNat (S n) where
   natVal = (1 +) . natVal . pred
     where
       pred :: proxy (S n) -> proxy n
       pred = undefined
--}
