@@ -53,7 +53,7 @@ import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
 #if MIN_VERSION_base(4, 8, 0)
--- Use @Nat@s from @GHC.TypeLits@ (not @Typeable@ as of GHC 7.8.1).
+-- Use @Nat@s from @GHC.TypeLits@.
 import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
 import qualified GHC.TypeLits as N
 

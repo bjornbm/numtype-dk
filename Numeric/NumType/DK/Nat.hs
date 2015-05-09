@@ -15,7 +15,6 @@ infixl 7  *
 infixl 6  +
 
 data Nat = Z | S Nat  -- Natural numbers starting at 0.
---type N1 = S Z
 
 -- | Nat addition.
 type family (n::Nat) + (n'::Nat) :: Nat where
