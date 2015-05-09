@@ -1,20 +1,47 @@
 {-# LANGUAGE AutoDeriveTypeable #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+{- |
+   Copyright  : Copyright (C) 2006-2015 Bjorn Buckwalter
+   License    : BSD3
+
+   Maintainer : bjorn.buckwalter@gmail.com
+   Stability  : Stable
+   Portability: GHC only
+
+= Summary
+
+Type-level integers for GHC 7.8+.
+
+We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys, 
+and conversion from the type level to the term level.
+
+= Planned Obsolesence
+
+We commit this package to hackage in sure and certain hope of the coming of glorious GHC integer type literals,
+when the sea shall give up her dead, and this package shall be rendered unto obsolescence.
+
+-}
 module Numeric.NumType.DK
 (
+  -- * Type-Level Integers
   type NumType(..),
+  -- * Type-level Arithmetic
   Pred, Succ, Negate, Abs, Signum,
   type (+), type (-), type (*), type (/), type (^),
+  -- * Arithmetic on Proxies
   pred, succ, negate, abs, signum,
   (+), (-), (*), (/), (^),
+  -- * Convenience Synonyms for Proxies
   zero,
   pos1, pos2, pos3, pos4, pos5, pos6, pos7, pos8, pos9,
   neg1, neg2, neg3, neg4, neg5, neg6, neg7, neg8, neg9,
+  -- * Conversion from Types to Terms
   KnownNumType(..)
 )
 where
@@ -23,22 +50,20 @@ import Data.Proxy
 import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
--- {-
--- Use custom @Typeable@ @Nat@s.
-import Numeric.NumType.DK.Nat (Nat (S, Z))
-import qualified Numeric.NumType.DK.Nat as N
-
-type N1 = 'S 'Z  -- NumType.DK.Nats
--- -}
-
-{-
+#if MIN_VERSION_base(4, 8, 0)
 -- Use @Nat@s from @GHC.TypeLits@ (not @Typeable@ as of GHC 7.8.1).
 import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
 import qualified GHC.TypeLits as N
 
 type Z  = 0  -- GHC.TypeLits
 type N1 = 1  -- GHC.TypeLits
--- -}
+#else
+-- Use custom @Typeable@ @Nat@s.
+import Numeric.NumType.DK.Nat (Nat (S, Z))
+import qualified Numeric.NumType.DK.Nat as N
+
+type N1 = 'S 'Z  -- NumType.DK.Nats
+#endif
 
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
@@ -84,7 +109,7 @@ data NumType = Neg10Minus Nat  -- 10, 11, 12, 13, ...
 
 type family Pred (i::NumType) :: NumType where
   Pred ('Neg10Minus n) = 'Neg10Minus (NatSucc n)
-  Pred 'Neg9 = 'Neg10Minus 'Z
+  Pred 'Neg9 = 'Neg10Minus Z
   Pred 'Neg8 = 'Neg9
   Pred 'Neg7 = 'Neg8
   Pred 'Neg6 = 'Neg7
@@ -103,11 +128,11 @@ type family Pred (i::NumType) :: NumType where
   Pred 'Pos7 = 'Pos6
   Pred 'Pos8 = 'Pos7
   Pred 'Pos9 = 'Pos8
-  Pred ('Pos10Plus 'Z) = 'Pos9
+  Pred ('Pos10Plus Z) = 'Pos9
   Pred ('Pos10Plus n) = 'Pos10Plus (NatPred n)
 
 type family Succ (i::NumType) :: NumType where
-  Succ ('Neg10Minus 'Z) = 'Neg9
+  Succ ('Neg10Minus Z) = 'Neg9
   Succ ('Neg10Minus n) = 'Neg10Minus (NatPred n)
   Succ 'Neg9 = 'Neg8
   Succ 'Neg8 = 'Neg7
@@ -127,7 +152,7 @@ type family Succ (i::NumType) :: NumType where
   Succ 'Pos6 = 'Pos7
   Succ 'Pos7 = 'Pos8
   Succ 'Pos8 = 'Pos9
-  Succ 'Pos9 = 'Pos10Plus 'Z
+  Succ 'Pos9 = 'Pos10Plus Z
   Succ ('Pos10Plus n) = 'Pos10Plus (NatSucc n)
 
 -- | NumType negation.
