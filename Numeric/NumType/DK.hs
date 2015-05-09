@@ -5,7 +5,19 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Numeric.NumType.DK where
+module Numeric.NumType.DK
+(
+  type NumType(..),
+  Pred, Succ, Negate, Abs, Signum,
+  type (+), type (-), type (*), type (/), type (^),
+  pred, succ, negate, abs, signum,
+  (+), (-), (*), (/), (^),
+  zero,
+  pos1, pos2, pos3, pos4, pos5, pos6, pos7, pos8, pos9,
+  neg1, neg2, neg3, neg4, neg5, neg6, neg7, neg8, neg9,
+  KnownNumType(..)
+)
+where
 
 import Data.Proxy
 import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
