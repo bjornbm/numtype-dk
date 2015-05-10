@@ -61,9 +61,10 @@ type Z  = 0  -- GHC.TypeLits
 type N1 = 1  -- GHC.TypeLits
 #else
 -- Use custom @Typeable@ @Nat@s.
-import Numeric.NumType.DK.Natural (TypeNat (S, Z))
+import Numeric.NumType.DK.Naturals (TypeNat (S, Z))
 import qualified Numeric.NumType.DK.Naturals as N
 
+type Nat = TypeNat -- alias with same name as GHC's type of nats
 type N1 = 'S 'Z  -- TypeInt.DK.Nats
 #endif
 
