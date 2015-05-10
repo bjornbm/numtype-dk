@@ -32,7 +32,7 @@ when the sea shall give up her dead, and this package shall be rendered unto obs
 module Numeric.NumType.DK.Integers
 (
   -- * Type-Level Integers
-  type NumType(..),
+  type TypeInt(..),
   -- * Type-level Arithmetic
   Pred, Succ, Negate, Abs, Signum,
   type (+), type (-), type (*), type (/), type (^),
@@ -44,7 +44,7 @@ module Numeric.NumType.DK.Integers
   pos1, pos2, pos3, pos4, pos5, pos6, pos7, pos8, pos9,
   neg1, neg2, neg3, neg4, neg5, neg6, neg7, neg8, neg9,
   -- * Conversion from Types to Terms
-  KnownNumType(..)
+  KnownTypeInt(..)
 )
 where
 
@@ -61,10 +61,10 @@ type Z  = 0  -- GHC.TypeLits
 type N1 = 1  -- GHC.TypeLits
 #else
 -- Use custom @Typeable@ @Nat@s.
-import Numeric.NumType.DK.Nat (Nat (S, Z))
-import qualified Numeric.NumType.DK.Nat as N
+import Numeric.NumType.DK.Natural (TypeNat (S, Z))
+import qualified Numeric.NumType.DK.Naturals as N
 
-type N1 = 'S 'Z  -- NumType.DK.Nats
+type N1 = 'S 'Z  -- TypeInt.DK.Nats
 #endif
 
 -- Use the same fixity for operators as the Prelude.
@@ -83,7 +83,7 @@ type family NatSucc (n::Nat) :: Nat where NatSucc n = n N.+ N1
 -- Integers
 -- ========
 
-data NumType = Neg10Minus Nat  -- 10, 11, 12, 13, ...
+data TypeInt = Neg10Minus Nat  -- 10, 11, 12, 13, ...
              | Neg9
              | Neg8
              | Neg7
@@ -109,7 +109,7 @@ data NumType = Neg10Minus Nat  -- 10, 11, 12, 13, ...
 -- Unary operations
 -- ----------------
 
-type family Pred (i::NumType) :: NumType where
+type family Pred (i::TypeInt) :: TypeInt where
   Pred ('Neg10Minus n) = 'Neg10Minus (NatSucc n)
   Pred 'Neg9 = 'Neg10Minus Z
   Pred 'Neg8 = 'Neg9
@@ -133,7 +133,7 @@ type family Pred (i::NumType) :: NumType where
   Pred ('Pos10Plus Z) = 'Pos9
   Pred ('Pos10Plus n) = 'Pos10Plus (NatPred n)
 
-type family Succ (i::NumType) :: NumType where
+type family Succ (i::TypeInt) :: TypeInt where
   Succ ('Neg10Minus Z) = 'Neg9
   Succ ('Neg10Minus n) = 'Neg10Minus (NatPred n)
   Succ 'Neg9 = 'Neg8
@@ -157,8 +157,8 @@ type family Succ (i::NumType) :: NumType where
   Succ 'Pos9 = 'Pos10Plus Z
   Succ ('Pos10Plus n) = 'Pos10Plus (NatSucc n)
 
--- | NumType negation.
-type family Negate (i::NumType) :: NumType where
+-- | TypeInt negation.
+type family Negate (i::TypeInt) :: TypeInt where
   Negate ('Neg10Minus n) = 'Pos10Plus  n
   Negate 'Neg9 = 'Pos9
   Negate 'Neg8 = 'Pos8
@@ -182,7 +182,7 @@ type family Negate (i::NumType) :: NumType where
   Negate ('Pos10Plus  n) = 'Neg10Minus n
 
 -- | Absolute value.
-type family Abs (i::NumType) :: NumType where
+type family Abs (i::TypeInt) :: TypeInt where
   Abs ('Neg10Minus n) = 'Pos10Plus  n
   Abs 'Neg9 = 'Pos9
   Abs 'Neg8 = 'Pos8
@@ -196,7 +196,7 @@ type family Abs (i::NumType) :: NumType where
   Abs i = i
 
 -- | Signum.
-type family Signum (i::NumType) :: NumType where
+type family Signum (i::TypeInt) :: TypeInt where
   Signum ('Neg10Minus n) = 'Neg1
   Signum 'Neg9 = 'Neg1
   Signum 'Neg8 = 'Neg1
@@ -214,8 +214,8 @@ type family Signum (i::NumType) :: NumType where
 -- Binary operations
 -- -----------------
 
--- | NumType addition.
-type family (i::NumType) + (i'::NumType) :: NumType where
+-- | TypeInt addition.
+type family (i::TypeInt) + (i'::TypeInt) :: TypeInt where
   'Zero + i = i
   i + 'Neg10Minus n = Pred i + Succ ('Neg10Minus n)
   i + 'Neg9 = Pred i + 'Neg8
@@ -230,12 +230,12 @@ type family (i::NumType) + (i'::NumType) :: NumType where
   i + 'Zero = i
   i + i' = Succ i + Pred i'  -- i + Pos
 
--- | NumType subtraction.
-type family (i::NumType) - (i'::NumType) :: NumType where
+-- | TypeInt subtraction.
+type family (i::TypeInt) - (i'::TypeInt) :: TypeInt where
   i - i' = i + Negate i'
 
--- | NumType multiplication.
-type family (i::NumType) * (i'::NumType) :: NumType
+-- | TypeInt multiplication.
+type family (i::TypeInt) * (i'::TypeInt) :: TypeInt
   where
     'Zero * i = 'Zero
     i * 'Zero = 'Zero
@@ -251,8 +251,8 @@ type family (i::NumType) * (i'::NumType) :: NumType
     i * 'Pos10Plus n = i + i * Pred ('Pos10Plus n)
     i * i' = Negate (i * Negate i')
 
--- | NumType exponentiation.
-type family (i::NumType) ^ (i'::NumType) :: NumType
+-- | TypeInt exponentiation.
+type family (i::TypeInt) ^ (i'::TypeInt) :: TypeInt
   where
     i ^ 'Zero = 'Pos1
     i ^ 'Pos1 = i
@@ -266,8 +266,8 @@ type family (i::NumType) ^ (i'::NumType) :: NumType
     i ^ 'Pos9 = i * i * i * i * i * i * i * i * i
     i ^ 'Pos10Plus n = i * i ^ Pred ('Pos10Plus n)
 
--- | NumType division.
-type family (i::NumType) / (i'::NumType) :: NumType
+-- | TypeInt division.
+type family (i::TypeInt) / (i'::TypeInt) :: TypeInt
   where
  
     i / 'Pos1 = i
@@ -430,30 +430,30 @@ pos9 = Proxy :: Proxy 'Pos9
 -- -----------
 
 -- | Conversion to a @Num@.
-class KnownNumType (i::NumType) where toNum :: Num a => Proxy i -> a
+class KnownTypeInt (i::TypeInt) where toNum :: Num a => Proxy i -> a
 
-instance KnownNumType (Succ ('Neg10Minus n)) => KnownNumType ('Neg10Minus n)
+instance KnownTypeInt (Succ ('Neg10Minus n)) => KnownTypeInt ('Neg10Minus n)
   where toNum = (Prelude.- 1) . toNum . succ
 
-instance KnownNumType 'Neg9 where toNum _ = -9
-instance KnownNumType 'Neg8 where toNum _ = -8
-instance KnownNumType 'Neg7 where toNum _ = -7
-instance KnownNumType 'Neg6 where toNum _ = -6
-instance KnownNumType 'Neg5 where toNum _ = -5
-instance KnownNumType 'Neg4 where toNum _ = -4
-instance KnownNumType 'Neg3 where toNum _ = -3
-instance KnownNumType 'Neg2 where toNum _ = -2
-instance KnownNumType 'Neg1 where toNum _ = -1
-instance KnownNumType 'Zero where toNum _ = 0
-instance KnownNumType 'Pos1 where toNum _ = 1
-instance KnownNumType 'Pos2 where toNum _ = 2
-instance KnownNumType 'Pos3 where toNum _ = 3
-instance KnownNumType 'Pos4 where toNum _ = 4
-instance KnownNumType 'Pos5 where toNum _ = 5
-instance KnownNumType 'Pos6 where toNum _ = 6
-instance KnownNumType 'Pos7 where toNum _ = 7
-instance KnownNumType 'Pos8 where toNum _ = 8
-instance KnownNumType 'Pos9 where toNum _ = 9
+instance KnownTypeInt 'Neg9 where toNum _ = -9
+instance KnownTypeInt 'Neg8 where toNum _ = -8
+instance KnownTypeInt 'Neg7 where toNum _ = -7
+instance KnownTypeInt 'Neg6 where toNum _ = -6
+instance KnownTypeInt 'Neg5 where toNum _ = -5
+instance KnownTypeInt 'Neg4 where toNum _ = -4
+instance KnownTypeInt 'Neg3 where toNum _ = -3
+instance KnownTypeInt 'Neg2 where toNum _ = -2
+instance KnownTypeInt 'Neg1 where toNum _ = -1
+instance KnownTypeInt 'Zero where toNum _ = 0
+instance KnownTypeInt 'Pos1 where toNum _ = 1
+instance KnownTypeInt 'Pos2 where toNum _ = 2
+instance KnownTypeInt 'Pos3 where toNum _ = 3
+instance KnownTypeInt 'Pos4 where toNum _ = 4
+instance KnownTypeInt 'Pos5 where toNum _ = 5
+instance KnownTypeInt 'Pos6 where toNum _ = 6
+instance KnownTypeInt 'Pos7 where toNum _ = 7
+instance KnownTypeInt 'Pos8 where toNum _ = 8
+instance KnownTypeInt 'Pos9 where toNum _ = 9
 
-instance KnownNumType (Pred ('Pos10Plus n)) => KnownNumType ('Pos10Plus n)
+instance KnownTypeInt (Pred ('Pos10Plus n)) => KnownTypeInt ('Pos10Plus n)
   where toNum = (Prelude.+ 1) . toNum . pred
