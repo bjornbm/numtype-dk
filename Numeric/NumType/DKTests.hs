@@ -4,7 +4,7 @@
 
 module Numeric.NumType.DKTests where
 
-import Numeric.NumType.DK
+import Numeric.NumType.DK.Integers
 import Prelude hiding ((*), (/), (+), (-), (^), pred, succ, negate, abs, signum)
 import qualified Prelude as P ((*), (/), (+), (-), (^), pred, succ, negate, abs, signum)
 import Data.Proxy

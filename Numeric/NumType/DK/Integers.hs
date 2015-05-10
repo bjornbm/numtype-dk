@@ -29,7 +29,7 @@ We commit this package to hackage in sure and certain hope of the coming of glor
 when the sea shall give up her dead, and this package shall be rendered unto obsolescence.
 
 -}
-module Numeric.NumType.DK
+module Numeric.NumType.DK.Integers
 (
   -- * Type-Level Integers
   type NumType(..),

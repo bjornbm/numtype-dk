@@ -24,7 +24,7 @@ Description:
 Category:            Math
 Build-Type:          Simple
 Build-Depends:       base < 5
-Exposed-Modules:     Numeric.NumType.DK
-Other-Modules:       Numeric.NumType.DK.Nat
+Exposed-Modules:     Numeric.NumType.DK.Integers
+Other-Modules:       Numeric.NumType.DK.Naturals
 Extra-source-files:  README,
                      Numeric/NumType/DKTests.hs

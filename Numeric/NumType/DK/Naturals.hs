@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Numeric.NumType.DK.Nat where
+module Numeric.NumType.DK.Naturals where
 
 import Prelude hiding (pred)
 
