@@ -1,26 +1,71 @@
+{-# OPTIONS_HADDOCK show-extensions #-}
+
 {-# LANGUAGE AutoDeriveTypeable #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{- |
+   Copyright  : Copyright (C) 2006-2015 Bjorn Buckwalter
+   License    : BSD3
 
-module Numeric.NumType.DK where
+   Maintainer : bjorn.buckwalter@gmail.com
+   Stability  : Stable
+   Portability: GHC only
+
+= Summary
+
+Type-level integers for GHC 7.8+.
+
+We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys, 
+and conversion from the type level to the term level.
+
+= Planned Obsolesence
+
+We commit this package to hackage in sure and certain hope of the coming of glorious GHC integer type literals,
+when the sea shall give up her dead, and this package shall be rendered unto obsolescence.
+
+-}
+module Numeric.NumType.DK
+(
+  -- * Type-Level Integers
+  type NumType(..),
+  -- * Type-level Arithmetic
+  Pred, Succ, Negate, Abs, Signum,
+  type (+), type (-), type (*), type (/), type (^),
+  -- * Arithmetic on Proxies
+  pred, succ, negate, abs, signum,
+  (+), (-), (*), (/), (^),
+  -- * Convenience Synonyms for Proxies
+  zero,
+  pos1, pos2, pos3, pos4, pos5, pos6, pos7, pos8, pos9,
+  neg1, neg2, neg3, neg4, neg5, neg6, neg7, neg8, neg9,
+  -- * Conversion from Types to Terms
+  KnownNumType(..)
+)
+where
 
 import Data.Proxy
 import Prelude hiding ((+), (-), (*), (/), (^), pred, succ, negate, abs, signum)
 import qualified Prelude
 
--- {-
+#if MIN_VERSION_base(4, 8, 0)
 -- Use @Nat@s from @GHC.TypeLits@.
 import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
 import qualified GHC.TypeLits as N
 
 type Z  = 0  -- GHC.TypeLits
 type N1 = 1  -- GHC.TypeLits
--- -}
+#else
+-- Use custom @Typeable@ @Nat@s.
+import Numeric.NumType.DK.Nat (Nat (S, Z))
+import qualified Numeric.NumType.DK.Nat as N
+
+type N1 = 'S 'Z  -- NumType.DK.Nats
+#endif
 
 -- Use the same fixity for operators as the Prelude.
 infixr 8  ^
@@ -341,24 +386,43 @@ signum :: Proxy i -> Proxy (Signum i); signum _ = Proxy
 -- Term level TypeNats for convenience
 -- -----------------------------------
 
+neg9 :: Proxy 'Neg9
 neg9 = Proxy :: Proxy 'Neg9
+neg8 :: Proxy 'Neg8
 neg8 = Proxy :: Proxy 'Neg8
+neg7 :: Proxy 'Neg7
 neg7 = Proxy :: Proxy 'Neg7
+neg6 :: Proxy 'Neg6
 neg6 = Proxy :: Proxy 'Neg6
+neg5 :: Proxy 'Neg5
 neg5 = Proxy :: Proxy 'Neg5
+neg4 :: Proxy 'Neg4
 neg4 = Proxy :: Proxy 'Neg4
+neg3 :: Proxy 'Neg3
 neg3 = Proxy :: Proxy 'Neg3
+neg2 :: Proxy 'Neg2
 neg2 = Proxy :: Proxy 'Neg2
+neg1 :: Proxy 'Neg1
 neg1 = Proxy :: Proxy 'Neg1
+zero :: Proxy 'Zero
 zero = Proxy :: Proxy 'Zero
+pos1 :: Proxy 'Pos1
 pos1 = Proxy :: Proxy 'Pos1
+pos2 :: Proxy 'Pos2
 pos2 = Proxy :: Proxy 'Pos2
+pos3 :: Proxy 'Pos3
 pos3 = Proxy :: Proxy 'Pos3
+pos4 :: Proxy 'Pos4
 pos4 = Proxy :: Proxy 'Pos4
+pos5 :: Proxy 'Pos5
 pos5 = Proxy :: Proxy 'Pos5
+pos6 :: Proxy 'Pos6
 pos6 = Proxy :: Proxy 'Pos6
+pos7 :: Proxy 'Pos7
 pos7 = Proxy :: Proxy 'Pos7
+pos8 :: Proxy 'Pos8
 pos8 = Proxy :: Proxy 'Pos8
+pos9 :: Proxy 'Pos9
 pos9 = Proxy :: Proxy 'Pos9
 
 
