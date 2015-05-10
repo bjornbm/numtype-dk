@@ -64,7 +64,6 @@ type N1 = 1  -- GHC.TypeLits
 import Numeric.NumType.DK.Naturals (TypeNat (S, Z))
 import qualified Numeric.NumType.DK.Naturals as N
 
-type Nat = TypeNat -- alias with same name as GHC's type of nats
 type N1 = 'S 'Z  -- TypeInt.DK.Nats
 #endif
 

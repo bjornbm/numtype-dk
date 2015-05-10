@@ -14,38 +14,38 @@ infixr 8  ^
 infixl 7  *
 infixl 6  +
 
-data TypeNat = Z | S TypeNat  -- Natural numbers starting at 0.
+data Nat = Z | S Nat  -- Natural numbers starting at 0.
 
 -- | Nat addition.
-type family (n::TypeNat) + (n'::TypeNat) :: TypeNat where
+type family (n::Nat) + (n'::Nat) :: Nat where
   -- Z + n = n  -- Redundant.
   n + 'Z = n
   n + 'S n' = 'S n + n'
 
 -- | Nat subtraction.
-type family (n::TypeNat) - (n'::TypeNat) :: TypeNat where
+type family (n::Nat) - (n'::Nat) :: Nat where
   n - 'Z = n
   'S n - 'S n' = n - n'
 
 -- | Nat multiplication.
-type family (n::TypeNat) * (n'::TypeNat) :: TypeNat
+type family (n::Nat) * (n'::Nat) :: Nat
   where
     --Z * n = Z  -- Redundant
     n * 'Z = 'Z
     n * ('S n') = n + n * n'  -- i * Pos n
 
 -- | Nat exponentiation.
-type family (n::TypeNat) ^ (n'::TypeNat) :: TypeNat
+type family (n::Nat) ^ (n'::Nat) :: Nat
   where
     --Zero ^ Pos n = Zero  -- Redundant.
     n ^ 'Z = 'S 'Z
     n ^ 'S n' = n * n ^ n'
 
 
-class KnownTypeNat (n::TypeNat) where natVal :: proxy n -> Integer
+class KnownNat (n::Nat) where natVal :: proxy n -> Integer
 
-instance KnownTypeNat 'Z where natVal _ = 0
-instance KnownTypeNat n => KnownTypeNat ('S n) where
+instance KnownNat 'Z where natVal _ = 0
+instance KnownNat n => KnownNat ('S n) where
   natVal = (1 +) . natVal . pred
     where
       pred :: proxy ('S n) -> proxy n
