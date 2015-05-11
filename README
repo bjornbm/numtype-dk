@@ -1,4 +1,15 @@
-Experimental. Requires GHC 7.8 or later.
+numtype-dk
+==========
+
+This package provides type level representations of the integers
+(`TypeInt`s) and basic operations (addition, subtraction, multiplication,
+division, exponentiation) on these.
+
+Requires GHC 7.8 or later.
+
+
+Contributing
+------------
 
 For project information (issues, updates, wiki, examples) see:
-    http://github.com/bjornbm/numtype-dk
+  http://github.com/bjornbm/numtype-dk
