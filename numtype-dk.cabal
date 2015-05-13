@@ -24,7 +24,7 @@ description:
 
     Requires GHC 7.8 or later.
 
-extra-source-files:  README,
+extra-source-files:  README.md,
                      Numeric/NumType/DKTests.hs
 
 source-repository head
