@@ -14,5 +14,5 @@ Requires GHC 7.8 or later.
 Contributing
 ------------
 
-For project information (issues, updates, wiki, examples) see:
+For project information (code, issues) see:
   http://github.com/bjornbm/numtype-dk
