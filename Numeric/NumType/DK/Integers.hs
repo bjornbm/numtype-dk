@@ -54,8 +54,7 @@ import qualified Prelude
 
 #if MIN_VERSION_base(4, 8, 0)
 -- Use @Nat@s from @GHC.TypeLits@.
-import GHC.TypeLits hiding ((+)(), (*)(), (-)(), (^)())
-import qualified GHC.TypeLits as N
+import qualified GHC.TypeLits as TN
 
 type Z  = 0  -- GHC.TypeLits
 type N1 = 1  -- GHC.TypeLits
@@ -76,14 +75,14 @@ infixl 6  +, -
 -- Natural numbers
 -- ===============
 
-type family NatPred (n::Nat) :: Nat where NatPred n = n N.- N1
-type family NatSucc (n::Nat) :: Nat where NatSucc n = n N.+ N1
+type family NatPred (n::TN.Nat) :: TN.Nat where NatPred n = n TN.- N1
+type family NatSucc (n::TN.Nat) :: TN.Nat where NatSucc n = n TN.+ N1
 
 
 -- Integers
 -- ========
 
-data TypeInt = Neg10Minus Nat  -- 10, 11, 12, 13, ...
+data TypeInt = Neg10Minus TN.Nat  -- 10, 11, 12, 13, ...
              | Neg9
              | Neg8
              | Neg7
@@ -103,7 +102,7 @@ data TypeInt = Neg10Minus Nat  -- 10, 11, 12, 13, ...
              | Pos7
              | Pos8
              | Pos9
-             | Pos10Plus Nat  -- -10, -11, -12, -13, ...
+             | Pos10Plus TN.Nat  -- -10, -11, -12, -13, ...
 
 
 -- Unary operations
