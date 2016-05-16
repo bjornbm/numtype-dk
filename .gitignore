@@ -5,3 +5,5 @@
 *~
 *.swp
 dist/
+.cabal-sandbox/
+.stack-work/
