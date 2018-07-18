@@ -8,6 +8,10 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+#if __GLASGOW_HASKELL__ > 805
+{-# LANGUAGE NoStarIsType #-}
+#endif
+
 {- |
    Copyright  : Copyright (C) 2006-2015 Bjorn Buckwalter
    License    : BSD3
@@ -20,7 +24,7 @@
 
 Type-level integers for GHC 7.8+.
 
-We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys, 
+We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys,
 and conversion from the type level to the term level.
 
 = Planned Obsolesence
@@ -268,7 +272,7 @@ type family (i::TypeInt) ^ (i'::TypeInt) :: TypeInt
 -- | TypeInt division.
 type family (i::TypeInt) / (i'::TypeInt) :: TypeInt
   where
- 
+
     i / 'Pos1 = i
     i / 'Neg1 = Negate i
     -- @Zero / n = Zero@ would allow division by zero.
