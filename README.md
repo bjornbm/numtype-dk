@@ -8,7 +8,7 @@ division, exponentiation) on these.
 Requires GHC 7.8 or later.
 
 
-[![Build Status](https://travis-ci.org/bjornbm/numtype-dk.svg?branch=master)](https://travis-ci.org/bjornbm/numtype-dk)
+[![Build Status](https://api.travis-ci.com/bjornbm/numtype-dk.svg?branch=master)](https://app.travis-ci.com/github/bjornbm/numtype-dk)
 [![Hackage Version](https://img.shields.io/hackage/v/numtype-dk.svg)](http://hackage.haskell.org/package/numtype-dk)
 [![Stackage version](https://www.stackage.org/package/numtype-dk/badge/lts?label=Stackage)](https://www.stackage.org/package/numtype-dk)
 
