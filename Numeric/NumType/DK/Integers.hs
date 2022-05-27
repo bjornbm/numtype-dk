@@ -28,7 +28,7 @@ Type-level integers for GHC 7.8+.
 We provide type level arithmetic operations. We also provide term-level arithmetic operations on proxys,
 and conversion from the type level to the term level.
 
-= Planned Obsolesence
+= Planned Obsolescence
 
 We commit this package to hackage in sure and certain hope of the coming of glorious GHC integer type literals,
 when the sea shall give up her dead, and this package shall be rendered unto obsolescence.
